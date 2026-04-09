@@ -5,6 +5,9 @@ import { Plus, Users, Printer, Menu, X, ChevronRight, Trash2, Briefcase, Plane, 
 import { cn } from './lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Toaster, toast } from 'sonner';
+import { signInAnonymously } from 'firebase/auth';
+import { collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, where } from 'firebase/firestore';
+import { auth, db } from './firebase';
 import { TaskModal } from './components/TaskModal';
 import { HRModal } from './components/HRModal';
 import { MissionListModal } from './components/MissionListModal';
@@ -16,7 +19,7 @@ type TaskStatus = 'pending' | 'in_progress' | 'completed';
 type DepartmentKey = 'legal' | 'investment' | 'audit' | 'family_office' | 'ir' | 'personal';
 
 interface Task {
-  id: number;
+  id: string;
   name: string;
   description: string;
   departments: DepartmentKey[];
@@ -61,21 +64,59 @@ export default function App() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   useEffect(() => {
-    if (userRole) {
-      fetchTasks();
-      fetchMembers();
-      fetchLiaisonDepts();
-    }
+    if (!userRole) return;
+
+    const tasksRef = collection(db, 'tasks');
+    const qTasks = view === 'trash' 
+      ? query(tasksRef, where('deletedAt', '!=', null), orderBy('deletedAt', 'desc'))
+      : query(tasksRef, where('deletedAt', '==', null), orderBy('createdAt', 'desc'));
+
+    const unsubscribeTasks = onSnapshot(qTasks, (snapshot) => {
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
+      setTasks(data);
+    }, (error) => {
+      console.error('Failed to fetch tasks', error);
+    });
+
+    const membersRef = collection(db, 'members');
+    const qMembers = query(membersRef, orderBy('createdAt', 'desc'));
+    const unsubscribeMembers = onSnapshot(qMembers, (snapshot) => {
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
+      setMembers(data);
+    }, (error) => {
+      console.error('Failed to fetch members', error);
+    });
+
+    const deptsRef = collection(db, 'liaisonDepartments');
+    const unsubscribeDepts = onSnapshot(deptsRef, (snapshot) => {
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
+      setLiaisonDepts(data);
+    }, (error) => {
+      console.error('Failed to fetch liaison depts', error);
+    });
+
+    return () => {
+      unsubscribeTasks();
+      unsubscribeMembers();
+      unsubscribeDepts();
+    };
   }, [view, userRole]);
 
-  const handleLogin = (role: 'staff' | 'otis') => {
-    if (role === 'staff') {
-      setUserRole('staff');
-    } else if (password === '123456') {
-      setUserRole('otis');
-      setLoginError(false);
-    } else {
-      setLoginError(true);
+  const handleLogin = async (role: 'staff' | 'otis') => {
+    try {
+      if (role === 'staff') {
+        await signInAnonymously(auth);
+        setUserRole('staff');
+      } else if (password === '123456') {
+        await signInAnonymously(auth);
+        setUserRole('otis');
+        setLoginError(false);
+      } else {
+        setLoginError(true);
+      }
+    } catch (error) {
+      console.error('Login failed', error);
+      toast.error('登录失败，请检查网络连接');
     }
   };
 
@@ -140,59 +181,27 @@ export default function App() {
     );
   }
 
-  const fetchTasks = async () => {
-    try {
-      const res = await fetch(view === 'trash' ? '/api/tasks/trash' : '/api/tasks');
-      const data = await res.json();
-      setTasks(data);
-    } catch (error) {
-      console.error('Failed to fetch tasks', error);
-    }
-  };
-
-  const fetchMembers = async () => {
-    try {
-      const res = await fetch('/api/members');
-      const data = await res.json();
-      setMembers(data);
-    } catch (error) {
-      console.error('Failed to fetch members', error);
-    }
-  };
-
-  const fetchLiaisonDepts = async () => {
-    try {
-      const res = await fetch('/api/liaison-departments');
-      const data = await res.json();
-      setLiaisonDepts(data);
-    } catch (error) {
-      console.error('Failed to fetch liaison depts', error);
-    }
-  };
-
   const handleSaveTask = async (taskData: any) => {
     try {
       let isNew = false;
       if (taskData.id) {
-        await fetch(`/api/tasks/${taskData.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(taskData)
-        });
+        await updateDoc(doc(db, 'tasks', taskData.id.toString()), taskData);
       } else {
         isNew = true;
-        await fetch('/api/tasks', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(taskData)
+        const newDocRef = doc(collection(db, 'tasks'));
+        await setDoc(newDocRef, {
+          ...taskData,
+          id: newDocRef.id,
+          createdAt: new Date().toISOString(),
+          deletedAt: null
         });
+        taskData.id = newDocRef.id;
       }
       setIsTaskModalOpen(false);
       setEditingTask(null);
       if (selectedTask && taskData.id === selectedTask.id) {
         setSelectedTask({ ...selectedTask, ...taskData });
       }
-      fetchTasks();
       
       if (isNew) {
         toast.success('新待办已生成', {
@@ -205,46 +214,37 @@ export default function App() {
     }
   };
 
-  const handleDeleteTask = async (id: number) => {
+  const handleDeleteTask = async (id: string | number) => {
     try {
-      await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
+      await updateDoc(doc(db, 'tasks', id.toString()), { deletedAt: new Date().toISOString() });
       setSelectedTask(null);
-      fetchTasks();
     } catch (error) {
       console.error('Failed to delete task', error);
     }
   };
 
-  const handlePermanentDelete = async (id: number) => {
+  const handlePermanentDelete = async (id: string | number) => {
     try {
-      await fetch(`/api/tasks/${id}/permanent`, { method: 'DELETE' });
-      fetchTasks();
+      await deleteDoc(doc(db, 'tasks', id.toString()));
     } catch (error) {
       console.error('Failed to permanent delete task', error);
     }
   };
 
-  const handleRestoreTask = async (id: number) => {
+  const handleRestoreTask = async (id: string | number) => {
     try {
-      await fetch(`/api/tasks/${id}/restore`, { method: 'POST' });
-      fetchTasks();
+      await updateDoc(doc(db, 'tasks', id.toString()), { deletedAt: null });
     } catch (error) {
       console.error('Failed to restore task', error);
     }
   };
 
-  const handleUpdateTask = async (id: number, updates: any) => {
+  const handleUpdateTask = async (id: string | number, updates: any) => {
     try {
-      const res = await fetch(`/api/tasks/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates)
-      });
-      const updated = await res.json();
+      await updateDoc(doc(db, 'tasks', id.toString()), updates);
       if (selectedTask?.id === id) {
-        setSelectedTask(updated);
+        setSelectedTask({ ...selectedTask, ...updates });
       }
-      fetchTasks();
     } catch (error) {
       console.error('Failed to update task', error);
     }
@@ -253,28 +253,23 @@ export default function App() {
   const handleSaveMember = async (memberData: any) => {
     try {
       if (memberData.id) {
-        await fetch(`/api/members/${memberData.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(memberData)
-        });
+        await updateDoc(doc(db, 'members', memberData.id.toString()), memberData);
       } else {
-        await fetch('/api/members', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(memberData)
+        const newDocRef = doc(collection(db, 'members'));
+        await setDoc(newDocRef, {
+          ...memberData,
+          id: newDocRef.id,
+          createdAt: new Date().toISOString()
         });
       }
-      fetchMembers();
     } catch (error) {
       console.error('Failed to save member', error);
     }
   };
 
-  const handleDeleteMember = async (id: number) => {
+  const handleDeleteMember = async (id: string | number) => {
     try {
-      await fetch(`/api/members/${id}`, { method: 'DELETE' });
-      fetchMembers();
+      await deleteDoc(doc(db, 'members', id.toString()));
     } catch (error) {
       console.error('Failed to delete member', error);
     }
@@ -282,21 +277,20 @@ export default function App() {
 
   const handleSaveDept = async (deptData: any) => {
     try {
-      await fetch('/api/liaison-departments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(deptData)
+      const newDocRef = doc(collection(db, 'liaisonDepartments'));
+      await setDoc(newDocRef, {
+        ...deptData,
+        id: newDocRef.id,
+        createdAt: new Date().toISOString()
       });
-      fetchLiaisonDepts();
     } catch (error) {
       console.error('Failed to save dept', error);
     }
   };
 
-  const handleDeleteDept = async (id: number) => {
+  const handleDeleteDept = async (id: string | number) => {
     try {
-      await fetch(`/api/liaison-departments/${id}`, { method: 'DELETE' });
-      fetchLiaisonDepts();
+      await deleteDoc(doc(db, 'liaisonDepartments', id.toString()));
     } catch (error) {
       console.error('Failed to delete dept', error);
     }
@@ -526,7 +520,7 @@ export default function App() {
         onClose={() => setSelectedTask(null)}
         task={selectedTask}
         onUpdate={handleUpdateTask}
-        onDelete={(id: number) => { handleDeleteTask(id); setSelectedTask(null); }}
+        onDelete={(id: string) => { handleDeleteTask(id); setSelectedTask(null); }}
         onEdit={(task: Task) => { setSelectedTask(null); setEditingTask(task); setIsTaskModalOpen(true); }}
         canEdit={userRole === 'otis'}
       />

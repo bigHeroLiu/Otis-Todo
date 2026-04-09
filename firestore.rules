@@ -1,0 +1,61 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: tasks
+    // Document ID: auto-generated
+    // Fields:
+    //   - name: string (required)
+    //   - description: string
+    //   - departments: list
+    //   - projectLead: string
+    //   - teamMembers: list
+    //   - liaisonDepartments: list
+    //   - status: string (pending, in_progress, completed)
+    //   - currentUpdate: string
+    //   - tripInfo: map
+    //   - deletedAt: string (ISO 8601) or null
+    //   - createdAt: string (ISO 8601)
+    //
+    // Collection: members
+    // Document ID: auto-generated
+    // Fields:
+    //   - name: string (required)
+    //   - department: string (required)
+    //   - createdAt: string (ISO 8601)
+    //
+    // Collection: liaisonDepartments
+    // Document ID: auto-generated
+    // Fields:
+    //   - name: string (required)
+    //   - createdAt: string (ISO 8601)
+    //
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /tasks/{taskId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /members/{memberId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /liaisonDepartments/{deptId} {
+      allow read, write: if isAuthenticated();
+    }
+  }
+}

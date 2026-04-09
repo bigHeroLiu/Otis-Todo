@@ -1,0 +1,61 @@
+{
+  "entities": {
+    "Task": {
+      "title": "Task",
+      "description": "A task in the to-do list",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier" },
+        "name": { "type": "string", "description": "Task name" },
+        "description": { "type": "string", "description": "Task description" },
+        "departments": { "type": "array", "items": { "type": "string" }, "description": "Responsible departments" },
+        "projectLead": { "type": "string", "description": "Lead person" },
+        "teamMembers": { "type": "array", "items": { "type": "string" }, "description": "Team members" },
+        "liaisonDepartments": { "type": "array", "items": { "type": "string" }, "description": "Liaison departments" },
+        "status": { "type": "string", "enum": ["pending", "in_progress", "completed"], "description": "Task status" },
+        "currentUpdate": { "type": "string", "description": "Latest update" },
+        "tripInfo": { "type": "object", "description": "Trip information if applicable" },
+        "deletedAt": { "type": "string", "format": "date-time", "description": "Deletion timestamp" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" }
+      },
+      "required": ["name", "status"]
+    },
+    "Member": {
+      "title": "Member",
+      "description": "A team member",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier" },
+        "name": { "type": "string", "description": "Member name" },
+        "department": { "type": "string", "description": "Department" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" }
+      },
+      "required": ["name", "department"]
+    },
+    "LiaisonDepartment": {
+      "title": "LiaisonDepartment",
+      "description": "A liaison department",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier" },
+        "name": { "type": "string", "description": "Department name" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" }
+      },
+      "required": ["name"]
+    }
+  },
+  "firestore": {
+    "/tasks/{taskId}": {
+      "schema": { "$ref": "#/entities/Task" },
+      "description": "Tasks collection"
+    },
+    "/members/{memberId}": {
+      "schema": { "$ref": "#/entities/Member" },
+      "description": "Members collection"
+    },
+    "/liaisonDepartments/{deptId}": {
+      "schema": { "$ref": "#/entities/LiaisonDepartment" },
+      "description": "Liaison departments collection"
+    }
+  }
+}
