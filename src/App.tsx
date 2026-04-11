@@ -33,7 +33,7 @@ interface Task {
   createdAt: string;
 }
 
-const DEPARTMENTS: Record<DepartmentKey, { label: string; color: string; bg: string; border: string }> = {
+export const DEPARTMENTS: Record<DepartmentKey, { label: string; color: string; bg: string; border: string }> = {
   legal: { label: '法务部', color: 'text-red-700', bg: 'bg-red-50', border: 'border-red-200' },
   investment: { label: '投资部', color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200' },
   audit: { label: '审计部', color: 'text-indigo-700', bg: 'bg-indigo-50', border: 'border-indigo-200' },

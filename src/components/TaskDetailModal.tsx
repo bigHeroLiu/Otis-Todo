@@ -1,13 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
-import { Edit2, Trash2, CheckCircle, Clock, Save } from 'lucide-react';
+import { Edit2, Trash2, CheckCircle, Clock, Save, Sparkles, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '../lib/utils';
+import { summarizeTask } from '../services/geminiService';
+import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 
 export function TaskDetailModal({ isOpen, onClose, task, onUpdate, onDelete, onEdit, canEdit }: any) {
   const [updateText, setUpdateText] = useState('');
+  const [summary, setSummary] = useState<string | null>(null);
+  const [isSummarizing, setIsSummarizing] = useState(false);
+
+  useEffect(() => {
+    setSummary(null);
+  }, [task?.id]);
 
   if (!task) return null;
+
+  const handleSummarize = async () => {
+    setIsSummarizing(true);
+    try {
+      const res = await summarizeTask(task);
+      if (res) {
+        setSummary(res);
+      } else {
+        toast.error('总结生成失败');
+      }
+    } catch (e) {
+      toast.error('总结生成失败');
+    } finally {
+      setIsSummarizing(false);
+    }
+  };
 
   const handleAddUpdate = () => {
     if (!updateText.trim()) return;
@@ -62,7 +87,36 @@ export function TaskDetailModal({ isOpen, onClose, task, onUpdate, onDelete, onE
 
           <div className="space-y-4">
             <div>
-              <h4 className="text-sm font-medium text-slate-700 mb-2">任务描述</h4>
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-sm font-medium text-slate-700">任务描述</h4>
+                {!summary && (
+                  <button 
+                    onClick={handleSummarize} 
+                    disabled={isSummarizing} 
+                    className="text-xs flex items-center gap-1.5 text-[#1abc9c] bg-[#1abc9c]/10 hover:bg-[#1abc9c]/20 px-2.5 py-1.5 rounded-md transition-colors font-medium disabled:opacity-50"
+                  >
+                    {isSummarizing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                    {isSummarizing ? '正在总结...' : 'AI 智能总结'}
+                  </button>
+                )}
+              </div>
+              
+              <AnimatePresence>
+                {summary && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0, y: -10 }}
+                    animate={{ opacity: 1, height: 'auto', y: 0 }}
+                    className="mb-4 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100 rounded-xl p-4 shadow-sm overflow-hidden"
+                  >
+                    <div className="flex items-center gap-2 mb-2 text-emerald-700 font-bold text-sm">
+                      <Sparkles className="w-4 h-4" />
+                      AI 总结
+                    </div>
+                    <p className="text-sm text-emerald-900 leading-relaxed whitespace-pre-wrap">{summary}</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               <div className="bg-slate-50 p-4 rounded-xl text-sm text-slate-700 whitespace-pre-wrap border border-slate-100 min-h-[100px]">
                 {task.description || '暂无描述'}
               </div>
@@ -108,6 +162,8 @@ export function TaskDetailModal({ isOpen, onClose, task, onUpdate, onDelete, onE
                     <>
                       <div><span className="text-slate-500">需要司机:</span> 是</div>
                       {task.tripInfo.driverName && <div><span className="text-slate-500">司机姓名:</span> {task.tripInfo.driverName}</div>}
+                      {task.tripInfo.driverPhone && <div><span className="text-slate-500">司机手机号:</span> {task.tripInfo.driverPhone}</div>}
+                      {task.tripInfo.driverPickupLocation && <div className="col-span-2"><span className="text-slate-500">接车地点:</span> {task.tripInfo.driverPickupLocation}</div>}
                     </>
                   )}
                 </div>

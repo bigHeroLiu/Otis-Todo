@@ -2,6 +2,24 @@ import { GoogleGenAI, Type } from "@google/genai";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
+export async function summarizeTask(task: any) {
+  const prompt = `请作为高效的行政助手，对以下任务进行简明扼要的总结（提炼核心目标、关键时间和行动点，控制在100字以内）：
+  任务名称：${task.name}
+  任务描述：${task.description}
+  最新进展：${task.currentUpdate || '无'}
+  出差信息：${task.tripInfo ? JSON.stringify(task.tripInfo) : '无'}`;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+    });
+    return response.text;
+  } catch (e) {
+    console.error("Failed to summarize task", e);
+    return null;
+  }
+}
 export async function processNaturalLanguageTask(input: string) {
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
@@ -22,12 +40,16 @@ export async function processNaturalLanguageTask(input: string) {
           "transport": "交通方式，必须从以下选项中严格选择一个：飞机、高铁、公司司机、自驾、其他",
           "needsDriver": true 或 false (如果描述中提到需要司机、接送等，设为 true),
           "driverName": "司机姓名（如果提到）",
+          "driverPickupLocation": "司机在哪里接（如果提到，例如：机场T3航站楼、公司楼下等）",
+          "driverPhone": "司机手机号（如果提到，例如：13812345678）",
           "flightNo": "航班号（如果提到航班信息，如 MU5101）",
           "flightTime": "起降时间与机场（如果提到相关信息）"
         }
       }
       
-      当前日期是：${new Date().toLocaleDateString()}
+      重要提示：
+      1. 请务必仔细提取“司机手机号”(driverPhone) 和“接车地点”(driverPickupLocation)，只要用户在描述中提及了电话号码或接送的具体位置，就必须填入对应的字段中。
+      2. 当前日期是：${new Date().toLocaleDateString()}
       
       请确保输出是合法的 JSON。`,
       responseMimeType: "application/json",
@@ -53,6 +75,8 @@ export async function processNaturalLanguageTask(input: string) {
               },
               needsDriver: { type: Type.BOOLEAN },
               driverName: { type: Type.STRING },
+              driverPickupLocation: { type: Type.STRING },
+              driverPhone: { type: Type.STRING },
               flightNo: { type: Type.STRING },
               flightTime: { type: Type.STRING }
             }

@@ -38,7 +38,7 @@ export function ChatAI({ onAddTask }: { onAddTask: (task: any) => Promise<void> 
     if (type === 'meeting') {
       setPlaceholder('帮我记一下，明天下午三点要和法务部开会讨论投资协议，负责人是张三。');
     } else {
-      setPlaceholder('4月15日上午十点我要出差去美国密西西比。');
+      setPlaceholder('4月15日上午十点我要出差去美国密西西比。需要张师傅在T3航站楼接我，电话13812345678。');
     }
   };
 

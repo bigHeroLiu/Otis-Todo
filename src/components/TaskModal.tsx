@@ -223,7 +223,7 @@ export function TaskModal({ isOpen, onClose, task, onSave, members, liaisonDepts
               )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-100 mt-4">
-                <div className="flex items-center h-full pt-6">
+                <div className="flex items-center h-full md:col-span-2">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input 
                       type="checkbox" 
@@ -235,15 +235,35 @@ export function TaskModal({ isOpen, onClose, task, onSave, members, liaisonDepts
                   </label>
                 </div>
                 {formData.tripInfo?.needsDriver && (
-                  <div>
-                    <label className="block text-xs font-medium text-slate-500 mb-1">司机姓名</label>
-                    <input 
-                      type="text"
-                      value={formData.tripInfo?.driverName || ''}
-                      onChange={e => setFormData({...formData, tripInfo: {...formData.tripInfo, driverName: e.target.value}})}
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#1abc9c]/50"
-                    />
-                  </div>
+                  <>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-500 mb-1">司机姓名</label>
+                      <input 
+                        type="text"
+                        value={formData.tripInfo?.driverName || ''}
+                        onChange={e => setFormData({...formData, tripInfo: {...formData.tripInfo, driverName: e.target.value}})}
+                        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#1abc9c]/50"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-500 mb-1">司机手机号</label>
+                      <input 
+                        type="text"
+                        value={formData.tripInfo?.driverPhone || ''}
+                        onChange={e => setFormData({...formData, tripInfo: {...formData.tripInfo, driverPhone: e.target.value}})}
+                        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#1abc9c]/50"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-xs font-medium text-slate-500 mb-1">司机在哪里接</label>
+                      <input 
+                        type="text"
+                        value={formData.tripInfo?.driverPickupLocation || ''}
+                        onChange={e => setFormData({...formData, tripInfo: {...formData.tripInfo, driverPickupLocation: e.target.value}})}
+                        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#1abc9c]/50"
+                      />
+                    </div>
+                  </>
                 )}
               </div>
             </div>
