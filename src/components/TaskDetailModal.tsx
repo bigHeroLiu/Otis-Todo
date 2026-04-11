@@ -166,6 +166,17 @@ export function TaskDetailModal({ isOpen, onClose, task, onUpdate, onDelete, onE
                       {task.tripInfo.driverPickupLocation && <div className="col-span-2"><span className="text-slate-500">接车地点:</span> {task.tripInfo.driverPickupLocation}</div>}
                     </>
                   )}
+                  {task.tripInfo.estimatedTravelTime && (
+                    <div className="col-span-2 mt-2 pt-3 border-t border-slate-200">
+                      <div className="flex items-start gap-2">
+                        <Sparkles className="w-4 h-4 text-[#1abc9c] shrink-0 mt-0.5" />
+                        <div>
+                          <span className="text-slate-500 font-medium block mb-1">AI 行程预估:</span>
+                          <span className="text-slate-700 leading-relaxed">{task.tripInfo.estimatedTravelTime}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

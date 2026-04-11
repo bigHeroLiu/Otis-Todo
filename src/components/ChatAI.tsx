@@ -55,8 +55,19 @@ export function ChatAI({ onAddTask }: { onAddTask: (task: any) => Promise<void> 
     setInput('');
     setIsLoading(true);
 
+    let userLocation = '';
     try {
-      const taskData = await processNaturalLanguageTask(input);
+      // Try to get user location
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+      });
+      userLocation = `纬度: ${position.coords.latitude}, 经度: ${position.coords.longitude}`;
+    } catch (e) {
+      console.log("Could not get location", e);
+    }
+
+    try {
+      const taskData = await processNaturalLanguageTask(input, userLocation);
       
       if (taskData) {
         const assistantMsg: Message = {

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
-import { X, Plus, Trash2 } from 'lucide-react';
+import { X, Plus, Trash2, Sparkles, Loader2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { format } from 'date-fns';
+import { estimateTravelTime } from '../services/geminiService';
 
 export function TaskModal({ isOpen, onClose, task, onSave, members, liaisonDepts }: any) {
   const [formData, setFormData] = useState<any>({
@@ -17,6 +18,8 @@ export function TaskModal({ isOpen, onClose, task, onSave, members, liaisonDepts
   });
 
   const [hasTrip, setHasTrip] = useState(false);
+
+  const [isEstimating, setIsEstimating] = useState(false);
 
   useEffect(() => {
     if (task) {
@@ -41,6 +44,35 @@ export function TaskModal({ isOpen, onClose, task, onSave, members, liaisonDepts
       setHasTrip(false);
     }
   }, [task, isOpen]);
+
+  const handleEstimate = async () => {
+    if (!formData.tripInfo) return;
+    setIsEstimating(true);
+    try {
+      let userLocation = '';
+      try {
+        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+        });
+        userLocation = `纬度: ${position.coords.latitude}, 经度: ${position.coords.longitude}`;
+      } catch (e) {
+        console.log("Could not get location", e);
+      }
+      
+      const estimate = await estimateTravelTime(formData.tripInfo, userLocation);
+      if (estimate) {
+        setFormData((prev: any) => ({
+          ...prev,
+          tripInfo: {
+            ...prev.tripInfo,
+            estimatedTravelTime: estimate
+          }
+        }));
+      }
+    } finally {
+      setIsEstimating(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -265,6 +297,27 @@ export function TaskModal({ isOpen, onClose, task, onSave, members, liaisonDepts
                     </div>
                   </>
                 )}
+                <div className="md:col-span-2">
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-medium text-slate-500">AI 行程预估</label>
+                    <button
+                      type="button"
+                      onClick={handleEstimate}
+                      disabled={isEstimating || !formData.tripInfo?.destination}
+                      className="text-xs flex items-center gap-1 text-[#1abc9c] hover:text-[#16a085] disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isEstimating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                      {isEstimating ? '计算中...' : '自动预估'}
+                    </button>
+                  </div>
+                  <textarea 
+                    rows={2}
+                    value={formData.tripInfo?.estimatedTravelTime || ''}
+                    onChange={e => setFormData({...formData, tripInfo: {...formData.tripInfo, estimatedTravelTime: e.target.value}})}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#1abc9c]/50 resize-none"
+                    placeholder="点击右上角“自动预估”由 AI 计算行程时间，您也可以手动修改..."
+                  />
+                </div>
               </div>
             </div>
           )}

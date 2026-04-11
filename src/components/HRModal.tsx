@@ -1,13 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
-import { Plus, Trash2, Edit2, X } from 'lucide-react';
+import { Plus, Trash2, Edit2, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { format, differenceInYears, differenceInMonths, differenceInDays } from 'date-fns';
 
 export function HRModal({ isOpen, onClose, members, onSaveMember, onDeleteMember, liaisonDepts, onSaveDept, onDeleteDept }: any) {
   const [activeTab, setActiveTab] = useState<'members' | 'depts'>('members');
   const [editingMember, setEditingMember] = useState<any>(null);
+  const [expandedDepts, setExpandedDepts] = useState<Record<string, boolean>>({
+    '投资部': true,
+    '法务部': true,
+    '审计部': true,
+    '家族办公室': true,
+    '投资者关系部': true,
+  });
 
   const coreDepts = ['投资部', '法务部', '审计部', '家族办公室', '投资者关系部'];
+
+  const toggleDept = (dept: string) => {
+    setExpandedDepts(prev => ({ ...prev, [dept]: !prev[dept] }));
+  };
+
+  const getDeptColor = (dept: string) => {
+    const colors: Record<string, any> = {
+      '投资部': { border: 'border-blue-200', dot: 'bg-blue-400', title: 'text-blue-900', count: 'text-blue-400', avatarBg: 'bg-blue-50', avatarText: 'text-blue-600', headerBg: 'bg-blue-50/30', icon: 'text-blue-400' },
+      '法务部': { border: 'border-purple-200', dot: 'bg-purple-400', title: 'text-purple-900', count: 'text-purple-400', avatarBg: 'bg-purple-50', avatarText: 'text-purple-600', headerBg: 'bg-purple-50/30', icon: 'text-purple-400' },
+      '审计部': { border: 'border-orange-200', dot: 'bg-orange-400', title: 'text-orange-900', count: 'text-orange-400', avatarBg: 'bg-orange-50', avatarText: 'text-orange-600', headerBg: 'bg-orange-50/30', icon: 'text-orange-400' },
+      '家族办公室': { border: 'border-emerald-200', dot: 'bg-emerald-400', title: 'text-emerald-900', count: 'text-emerald-400', avatarBg: 'bg-emerald-50', avatarText: 'text-emerald-600', headerBg: 'bg-emerald-50/30', icon: 'text-emerald-400' },
+      '投资者关系部': { border: 'border-pink-200', dot: 'bg-pink-400', title: 'text-pink-900', count: 'text-pink-400', avatarBg: 'bg-pink-50', avatarText: 'text-pink-600', headerBg: 'bg-pink-50/30', icon: 'text-pink-400' },
+    };
+    return colors[dept] || { border: 'border-slate-200', dot: 'bg-slate-400', title: 'text-slate-900', count: 'text-slate-400', avatarBg: 'bg-slate-50', avatarText: 'text-slate-600', headerBg: 'bg-slate-50/30', icon: 'text-slate-400' };
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -32,69 +54,85 @@ export function HRModal({ isOpen, onClose, members, onSaveMember, onDeleteMember
         </div>
 
         {activeTab === 'members' && (
-          <div className="space-y-8">
-            {coreDepts.map(dept => (
-              <div key={dept} className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                <h3 className="font-medium text-lg mb-3">{dept}</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                  {members.filter((m: any) => m.department === dept).map((m: any) => (
-                    <div key={m.id} className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex flex-col">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium">{m.name}</span>
-                        <div className="flex gap-1">
-                          <button onClick={() => setEditingMember(m)} className="p-1 text-slate-400 hover:text-[#1abc9c]"><Edit2 className="w-4 h-4" /></button>
-                          <button onClick={() => onDeleteMember(m.id)} className="p-1 text-slate-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
-                        </div>
-                      </div>
-                      {m.profile && Object.keys(m.profile).length > 0 ? (
-                        <div className="mt-2 pt-2 border-t border-slate-100 text-xs text-slate-500 space-y-1.5">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium text-slate-700">{m.profile.position || '未设置岗位'}</span>
-                            {m.profile.rank && <span className="px-1.5 py-0.5 bg-slate-100 rounded text-[10px]">{m.profile.rank}</span>}
-                            {m.profile.personality && <span className="px-1.5 py-0.5 bg-violet-50 text-violet-600 rounded text-[10px]">{m.profile.personality}</span>}
-                          </div>
-                          <div className="flex items-center gap-2 text-slate-400">
-                            {m.profile.education && <span>{m.profile.education}</span>}
-                            {m.profile.education && m.profile.yearsOfService && <span>·</span>}
-                            {m.profile.yearsOfService && <span>司龄 {m.profile.yearsOfService}</span>}
-                          </div>
-                          <div className="flex items-center justify-between mt-1">
-                            {m.profile.salary && (
-                              <span className="text-emerald-600 font-medium">
-                                ¥{m.profile.salary}/月
-                              </span>
-                            )}
-                            {m.profile.lastSalaryAdjustment && (
-                              <span className="text-slate-400 text-[10px]">
-                                上次调薪: {m.profile.lastSalaryAdjustment}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="mt-2 pt-2 border-t border-slate-100 text-xs text-slate-400 italic">
-                          暂无档案信息
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                  <form 
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      const input = e.currentTarget.elements.namedItem('name') as HTMLInputElement;
-                      if (input.value) {
-                        onSaveMember({ name: input.value, department: dept });
-                        input.value = '';
-                      }
-                    }}
-                    className="bg-white p-3 rounded-lg border border-dashed border-slate-300 flex items-center gap-2"
+          <div className="space-y-6">
+            {coreDepts.map(dept => {
+              const deptMembers = members.filter((m: any) => m.department === dept);
+              const isExpanded = expandedDepts[dept];
+              const colors = getDeptColor(dept);
+
+              return (
+                <div key={dept} className={`rounded-xl border ${colors.border} overflow-hidden bg-white`}>
+                  {/* Header */}
+                  <div 
+                    className={`flex items-center justify-between p-4 cursor-pointer select-none ${colors.headerBg}`}
+                    onClick={() => toggleDept(dept)}
                   >
-                    <input name="name" placeholder="添加新成员..." className="flex-1 text-sm outline-none" />
-                    <button type="submit" className="text-[#1abc9c]"><Plus className="w-4 h-4" /></button>
-                  </form>
+                    <div className="flex items-center gap-3">
+                      <div className={`w-2 h-2 rounded-full ${colors.dot}`} />
+                      <h3 className={`font-medium text-lg ${colors.title}`}>{dept}</h3>
+                      <span className={`text-sm ${colors.count}`}>{deptMembers.length} 人</span>
+                    </div>
+                    <div className={colors.icon}>
+                      {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                    </div>
+                  </div>
+
+                  {/* Member List */}
+                  {isExpanded && (
+                    <div className="flex flex-col">
+                      {deptMembers.map((m: any, index: number) => (
+                        <div key={m.id} className={`flex items-center justify-between p-4 ${index !== deptMembers.length - 1 ? 'border-b border-slate-100' : ''}`}>
+                          <div className="flex items-center gap-4">
+                            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-medium ${colors.avatarBg} ${colors.avatarText}`}>
+                              {m.name.charAt(0)}
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="font-medium text-slate-800 text-base">{m.name}</span>
+                              {m.profile && Object.keys(m.profile).length > 0 ? (
+                                <div className="flex items-center gap-2 text-sm text-slate-500 mt-0.5">
+                                  <span>{m.profile.position || '未设置岗位'}</span>
+                                  {m.profile.rank && <span>· {m.profile.rank}</span>}
+                                </div>
+                              ) : (
+                                <span className="text-sm text-emerald-600/70 italic mt-0.5">暂无档案</span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex gap-3">
+                            <button onClick={() => setEditingMember(m)} className="text-slate-400 hover:text-[#1abc9c] transition-colors">
+                              <Edit2 className="w-5 h-5" />
+                            </button>
+                            <button onClick={() => onDeleteMember(m.id)} className="text-slate-400 hover:text-red-500 transition-colors">
+                              <Trash2 className="w-5 h-5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                      
+                      {/* Add Member Form */}
+                      <div className="p-4 border-t border-slate-100 bg-slate-50/30">
+                        <form 
+                          onSubmit={(e) => {
+                            e.preventDefault();
+                            const input = e.currentTarget.elements.namedItem('name') as HTMLInputElement;
+                            if (input.value) {
+                              onSaveMember({ name: input.value, department: dept });
+                              input.value = '';
+                            }
+                          }}
+                          className="flex items-center gap-2 max-w-sm"
+                        >
+                          <input name="name" placeholder="添加新成员..." className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#1abc9c]/50 bg-white" />
+                          <button type="submit" className="p-2 text-white bg-[#1abc9c] hover:bg-[#16a085] rounded-lg transition-colors">
+                            <Plus className="w-4 h-4" />
+                          </button>
+                        </form>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
