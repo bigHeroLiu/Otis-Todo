@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Plus, Trash2, Edit2, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { format, differenceInYears, differenceInMonths, differenceInDays } from 'date-fns';
+import { Lunar } from 'lunar-javascript';
 
 export function HRModal({ isOpen, onClose, members, onSaveMember, onDeleteMember, liaisonDepts, onSaveDept, onDeleteDept }: any) {
   const [activeTab, setActiveTab] = useState<'members' | 'depts'>('members');
@@ -91,7 +92,6 @@ export function HRModal({ isOpen, onClose, members, onSaveMember, onDeleteMember
                               {m.profile && Object.keys(m.profile).length > 0 ? (
                                 <div className="flex items-center gap-2 text-sm text-slate-500 mt-0.5">
                                   <span>{m.profile.position || '未设置岗位'}</span>
-                                  {m.profile.rank && <span>· {m.profile.rank}</span>}
                                 </div>
                               ) : (
                                 <span className="text-sm text-emerald-600/70 italic mt-0.5">暂无档案</span>
@@ -181,10 +181,26 @@ export function HRModal({ isOpen, onClose, members, onSaveMember, onDeleteMember
 
 function MemberProfileModal({ member, onClose, onSave }: any) {
   const [profile, setProfile] = useState<any>({
-    position: '', rank: '', age: '', education: '本科', school: '', major: '',
-    hireDate: '', salary: '', birthday: '', lastSalaryAdjustment: '', personality: '',
+    position: '', age: '', education: '本科', school: '', major: '',
+    hireDate: '', salary: '', birthday: '', birthdayType: 'solar',
+    lastSalaryAdjustment: '', personality: '',
     ...(member.profile || {})
   });
+
+  const getBirthdayLabel = () => {
+    if (!profile.birthday) return '';
+    
+    // birthday format YYYY-MM-DD
+    const [y, m, d] = profile.birthday.split('-').map(Number);
+    if (isNaN(y) || isNaN(m) || isNaN(d)) return '';
+
+    if (profile.birthdayType === 'lunar') {
+      const lunar = Lunar.fromYmd(y, m, d);
+      return `${lunar.getYearInChinese()}年${lunar.getMonthInChinese()}月${lunar.getDayInChinese()} (农历)`;
+    } else {
+      return `${m}月${d}日 (阳历)`;
+    }
+  };
 
   const calculateYearsOfService = (hireDateStr: string) => {
     if (!hireDateStr) return '';
@@ -196,34 +212,15 @@ function MemberProfileModal({ member, onClose, onSave }: any) {
     return `${years}年${months}月${days >= 0 ? days : 0}天`;
   };
 
-  const calculateBirthday = (birthdayInput: string, age: number) => {
-    if (!birthdayInput || !age) return birthdayInput;
-    // Simple logic: if input is "5月20日", prepend year based on age
-    const match = birthdayInput.match(/(\d+)月(\d+)日?/);
-    if (match) {
-      const month = parseInt(match[1]);
-      const day = parseInt(match[2]);
-      const today = new Date();
-      let birthYear = today.getFullYear() - age;
-      if (today.getMonth() + 1 < month || (today.getMonth() + 1 === month && today.getDate() < day)) {
-        birthYear -= 1;
-      }
-      return `${birthYear}年${month}月${day}日`;
-    }
-    return birthdayInput;
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const yearsOfService = calculateYearsOfService(profile.hireDate);
-    const birthday = calculateBirthday(profile.birthday, parseInt(profile.age));
     
     onSave({
       ...member,
       profile: {
         ...profile,
         yearsOfService,
-        birthday,
         age: parseInt(profile.age) || null,
         salary: parseInt(profile.salary) || null,
       }
@@ -240,10 +237,6 @@ function MemberProfileModal({ member, onClose, onSave }: any) {
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1">岗位</label>
             <input value={profile.position} onChange={e => setProfile({...profile, position: e.target.value})} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#1abc9c]/50" />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">职级</label>
-            <input value={profile.rank} onChange={e => setProfile({...profile, rank: e.target.value})} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#1abc9c]/50" />
           </div>
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1">年龄</label>
@@ -272,8 +265,16 @@ function MemberProfileModal({ member, onClose, onSave }: any) {
             <input type="number" value={profile.salary} onChange={e => setProfile({...profile, salary: e.target.value})} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#1abc9c]/50" />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">生日 (如: 5月20日)</label>
-            <input value={profile.birthday} onChange={e => setProfile({...profile, birthday: e.target.value})} placeholder="5月20日" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#1abc9c]/50" />
+            <label className="block text-xs font-medium text-slate-500 mb-1">生日类型</label>
+            <select value={profile.birthdayType} onChange={e => setProfile({...profile, birthdayType: e.target.value})} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#1abc9c]/50">
+              <option value="solar">阳历</option>
+              <option value="lunar">阴历</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1">生日 (YYYY-MM-DD)</label>
+            <input value={profile.birthday} onChange={e => setProfile({...profile, birthday: e.target.value})} placeholder="1990-01-01" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#1abc9c]/50" />
+            <p className="text-xs text-emerald-600 mt-1">{getBirthdayLabel()}</p>
           </div>
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1">上一次调薪日期</label>

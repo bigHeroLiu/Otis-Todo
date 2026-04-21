@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { format } from 'date-fns';
+import { format, differenceInYears, differenceInMonths, differenceInDays, parse, addDays, isSameDay } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
-import { Plus, Users, Printer, Menu, X, ChevronRight, Trash2, Briefcase, Plane, Train, Car, RotateCcw } from 'lucide-react';
+import { Plus, Users, Printer, Menu, X, ChevronRight, Trash2, Briefcase, Plane, Train, Car, RotateCcw, Cake } from 'lucide-react';
 import { cn } from './lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Toaster, toast } from 'sonner';
+import { toast, Toaster } from 'sonner';
 import { TaskModal } from './components/TaskModal';
 import { HRModal } from './components/HRModal';
 import { MissionListModal } from './components/MissionListModal';
@@ -106,6 +106,38 @@ export default function App() {
         setUserRole('staff');
         setCurrentStaffId(staffId);
         await loadData();
+        
+        // Birthday alert logic
+        const today = new Date();
+        const alertingMembers = members.filter(m => {
+          if (!m.profile?.birthday) return false;
+          // birthday is string format: YYYY年M月d日
+          const birthDateMatch = m.profile.birthday.match(/(\d+)年(\d+)月(\d+)日/);
+          if (!birthDateMatch) return false;
+          const birthDate = new Date(today.getFullYear(), parseInt(birthDateMatch[2]) - 1, parseInt(birthDateMatch[3]));
+          
+          // Check if today is within 3 days before birthday (including birthday itself)
+          for (let i = 0; i <= 3; i++) {
+            if (isSameDay(addDays(today, i), birthDate)) return true;
+          }
+          return false;
+        });
+
+        if (alertingMembers.length > 0) {
+          toast.info('生日提醒', {
+            description: (
+              <div className="space-y-2">
+                {alertingMembers.map(m => (
+                  <div key={m.id} className="flex items-center gap-2">
+                    <Cake className="w-4 h-4 text-amber-500" />
+                    <span>{m.name} 即将于 {m.profile.birthday} 生日！</span>
+                  </div>
+                ))}
+              </div>
+            ),
+            duration: 10000,
+          });
+        }
       } else if (role === 'chairman') {
         if (chairmanPassword === '123456') {
           setUserRole('chairman');
@@ -121,6 +153,64 @@ export default function App() {
           await loadData();
         } else {
           setLoginError(true);
+        }
+        
+        // Birthday alert logic - Otis
+        const today = new Date();
+        const alertingMembers = members.filter(m => {
+          if (!m.profile?.birthday) return false;
+          // birthday is string format: YYYY年M月d日
+          const birthDateMatch = m.profile.birthday.match(/(\d+)年(\d+)月(\d+)日/);
+          if (!birthDateMatch) return false;
+          const birthDate = new Date(today.getFullYear(), parseInt(birthDateMatch[2]) - 1, parseInt(birthDateMatch[3]));
+          
+          // Check if today is within 3 days before birthday (including birthday itself)
+          for (let i = 0; i <= 3; i++) {
+            if (isSameDay(addDays(today, i), birthDate)) return true;
+          }
+          return false;
+        });
+
+        if (alertingMembers.length > 0) {
+          toast.info('生日提醒', {
+            description: (
+              <div className="space-y-2">
+                {alertingMembers.map(m => (
+                  <div key={m.id} className="flex items-center gap-2">
+                    <Cake className="w-4 h-4 text-amber-500" />
+                    <span>{m.name} 即将于 {m.profile.birthday} 生日！</span>
+                  </div>
+                ))}
+              </div>
+            ),
+            duration: 10000,
+          });
+        }
+
+        // Trip alert logic - Otis (check if any trip is TODAY, needs to be filtered globally)
+        const todayTrips = tasks.filter(t => {
+           if (!t.tripInfo?.dates) return false;
+           // assuming dates format like "YYYY-MM-DD 至 YYYY-MM-DD"
+           const dateRange = t.tripInfo.dates.split(' 至 ');
+           if (dateRange.length < 1) return false;
+           const startDate = new Date(dateRange[0]);
+           return isSameDay(today, startDate);
+        });
+
+        if (todayTrips.length > 0) {
+          toast.info('出差提醒', {
+            description: (
+              <div className="space-y-2">
+                {todayTrips.map(t => (
+                  <div key={t.id} className="flex items-center gap-2">
+                    <Plane className="w-4 h-4 text-sky-500" />
+                    <span>任务 "{t.name}" 今日出差：{t.tripInfo.destination}。</span>
+                  </div>
+                ))}
+              </div>
+            ),
+            duration: 10000,
+          });
         }
       }
     } catch (error) {

@@ -16,9 +16,11 @@ export function TaskModal({ isOpen, onClose, task, onSave, members, liaisonDepts
     liaisonDepartments: [],
     status: 'pending',
     tripInfo: null,
+    meetingInfo: null, // New
   });
 
   const [hasTrip, setHasTrip] = useState(false);
+  const [isMeeting, setIsMeeting] = useState(false); // New
 
   const [isEstimating, setIsEstimating] = useState(false);
 
@@ -31,6 +33,7 @@ export function TaskModal({ isOpen, onClose, task, onSave, members, liaisonDepts
         liaisonDepartments: (task.liaisonDepartments || []).map((ld: any) => typeof ld === 'string' ? { name: ld, contact: '', id: ld } : ld),
       });
       setHasTrip(!!task.tripInfo);
+      setIsMeeting(!!task.meetingInfo);
     } else {
       setFormData({
         name: '',
@@ -41,8 +44,10 @@ export function TaskModal({ isOpen, onClose, task, onSave, members, liaisonDepts
         liaisonDepartments: [], // Will store objects: { id: string, name: string, contact?: string }
         status: 'pending',
         tripInfo: null,
+        meetingInfo: null,
       });
       setHasTrip(false);
+      setIsMeeting(false);
     }
   }, [task, isOpen]);
 
@@ -106,6 +111,7 @@ export function TaskModal({ isOpen, onClose, task, onSave, members, liaisonDepts
     onSave({
       ...formData,
       tripInfo: hasTrip ? formData.tripInfo : null,
+      meetingInfo: isMeeting ? formData.meetingInfo : null,
     });
   };
 
@@ -141,6 +147,82 @@ export function TaskModal({ isOpen, onClose, task, onSave, members, liaisonDepts
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-4 focus:ring-[#1abc9c]/10 focus:border-[#1abc9c] transition-all text-slate-800 placeholder:text-slate-400"
                 />
               </div>
+
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2 text-violet-500">
+                  <span className="w-1 h-4 bg-violet-500 rounded-full"></span>
+                  会见信息
+                </h3>
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <div className={cn(
+                    "w-10 h-6 rounded-full relative transition-all duration-300",
+                    isMeeting ? "bg-[#1abc9c]" : "bg-slate-200"
+                  )}>
+                    <div className={cn(
+                      "absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-all duration-300 shadow-sm",
+                      isMeeting ? "translate-x-4" : ""
+                    )} />
+                  </div>
+                  <input 
+                    type="checkbox" 
+                    checked={isMeeting}
+                    onChange={e => {
+                      setIsMeeting(e.target.checked);
+                      if (e.target.checked && !formData.meetingInfo) {
+                        setFormData({...formData, meetingInfo: {}});
+                      }
+                    }}
+                    className="hidden"
+                  />
+                  <span className="text-sm font-semibold text-slate-600 group-hover:text-slate-900 transition-colors">开启会见</span>
+                </label>
+              </div>
+
+              {isMeeting && (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="bg-violet-50/30 p-5 rounded-2xl space-y-6 border border-violet-100/50"
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                      <label className="block text-xs font-bold text-violet-700 uppercase mb-1.5 ml-1">会见人</label>
+                      <input 
+                        type="text"
+                        value={formData.meetingInfo?.person || ''} 
+                        onChange={e => setFormData({...formData, meetingInfo: {...formData.meetingInfo, person: e.target.value}})} 
+                        className="w-full bg-white border border-violet-100 rounded-xl px-4 py-3 text-sm outline-none focus:ring-4 focus:ring-violet-500/10 focus:border-violet-400 transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-violet-700 uppercase mb-1.5 ml-1">会见时间</label>
+                      <input 
+                        type="datetime-local" 
+                        value={formData.meetingInfo?.time || ''} 
+                        onChange={e => setFormData({...formData, meetingInfo: {...formData.meetingInfo, time: e.target.value}})} 
+                        className="w-full bg-white border border-violet-100 rounded-xl px-4 py-3 text-sm outline-none focus:ring-4 focus:ring-violet-500/10 focus:border-violet-400 transition-all"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-violet-700 uppercase mb-1.5 ml-1">会见地点</label>
+                    <input 
+                      value={formData.meetingInfo?.location || ''} 
+                      onChange={e => setFormData({...formData, meetingInfo: {...formData.meetingInfo, location: e.target.value}})} 
+                      className="w-full bg-white border border-violet-100 rounded-xl px-4 py-3 text-sm outline-none focus:ring-4 focus:ring-violet-500/10 focus:border-violet-400 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-violet-700 uppercase mb-1.5 ml-1">会见事项</label>
+                    <textarea 
+                      rows={2} 
+                      value={formData.meetingInfo?.agenda || ''} 
+                      onChange={e => setFormData({...formData, meetingInfo: {...formData.meetingInfo, agenda: e.target.value}})} 
+                      className="w-full bg-white border border-violet-100 rounded-xl px-4 py-3 text-sm outline-none focus:ring-4 focus:ring-violet-500/10 focus:border-violet-400 transition-all resize-none"
+                    />
+                  </div>
+                </motion.div>
+              )}
 
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-1.5 ml-1">详细描述</label>
@@ -306,12 +388,22 @@ export function TaskModal({ isOpen, onClose, task, onSave, members, liaisonDepts
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div>
-                    <label className="block text-xs font-bold text-sky-700 uppercase mb-1.5 ml-1">目的地</label>
+                    <label className="block text-xs font-bold text-sky-700 uppercase mb-1.5 ml-1">去程目的地</label>
                     <input 
                       type="text"
                       placeholder="城市名称"
                       value={formData.tripInfo?.destination || ''}
                       onChange={e => setFormData({...formData, tripInfo: {...formData.tripInfo, destination: e.target.value}})}
+                      className="w-full bg-white border border-sky-100 rounded-xl px-4 py-3 text-sm outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-400 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-sky-700 uppercase mb-1.5 ml-1">返程信息</label>
+                    <input 
+                      type="text"
+                      placeholder="返程城市或日期"
+                      value={formData.tripInfo?.returnTrip || ''}
+                      onChange={e => setFormData({...formData, tripInfo: {...formData.tripInfo, returnTrip: e.target.value}})}
                       className="w-full bg-white border border-sky-100 rounded-xl px-4 py-3 text-sm outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-400 transition-all"
                     />
                   </div>
