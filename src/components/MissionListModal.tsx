@@ -66,7 +66,7 @@ export function MissionListModal({ isOpen, onClose, tasks }: any) {
                     <div className="col-span-2">创建时间</div>
                     <div className="col-span-4">项目名称</div>
                     <div className="col-span-3">负责部门</div>
-                    <div className="col-span-3">协同部门</div>
+                    <div className="col-span-3">协助部门</div>
                   </div>
 
                   {/* Table Body */}
@@ -84,13 +84,18 @@ export function MissionListModal({ isOpen, onClose, tasks }: any) {
                             {config.label}
                           </span>
                         </div>
-                        <div className="col-span-3 flex flex-wrap gap-2">
+                        <div className="col-span-3 flex flex-wrap gap-2 text-sm text-slate-700">
                           {task.liaisonDepartments && task.liaisonDepartments.length > 0 ? (
-                            task.liaisonDepartments.map((ld: string, idx: number) => (
-                              <span key={idx} className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
-                                {ld}
-                              </span>
-                            ))
+                            task.liaisonDepartments.map((ld: any, idx: number) => {
+                              const name = typeof ld === 'string' ? ld : ld.name;
+                              const contact = typeof ld === 'string' ? '' : ld.contact;
+                              return (
+                                <span key={idx} className="inline-flex flex-col px-2.5 py-1 rounded-lg bg-violet-50 text-violet-700 border border-violet-200 leading-tight">
+                                  <span className="font-bold">{name}</span>
+                                  {contact && <span className="text-[10px] opacity-70">对接: {contact}</span>}
+                                </span>
+                              );
+                            })
                           ) : (
                             <span className="text-slate-400">—</span>
                           )}

@@ -1,18 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { Plus, Users, Printer, Menu, X, ChevronRight, Trash2, Briefcase, Plane, Train, Car, RotateCcw } from 'lucide-react';
 import { cn } from './lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Toaster, toast } from 'sonner';
-import { signInAnonymously } from 'firebase/auth';
-import { collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, where } from 'firebase/firestore';
-import { auth, db } from './firebase';
 import { TaskModal } from './components/TaskModal';
 import { HRModal } from './components/HRModal';
 import { MissionListModal } from './components/MissionListModal';
 import { TaskDetailModal } from './components/TaskDetailModal';
 import { ChatAI } from './components/ChatAI';
+import { 
+  fetchTasks, saveTask, updateTask, deleteTask as deleteDbTask, 
+  fetchMembers, saveMember, deleteMember, 
+  fetchDepts, saveDept, deleteDept 
+} from './services/api';
 
 // Types
 type TaskStatus = 'pending' | 'in_progress' | 'completed';
@@ -30,6 +32,7 @@ interface Task {
   currentUpdate: string;
   tripInfo: any;
   deletedAt: string | null;
+  visibleToChairman?: boolean;
   createdAt: string;
 }
 
@@ -43,9 +46,14 @@ export const DEPARTMENTS: Record<DepartmentKey, { label: string; color: string; 
 };
 
 export default function App() {
-  const [userRole, setUserRole] = useState<'staff' | 'otis' | null>(null);
+  const [userRole, setUserRole] = useState<'staff' | 'otis' | 'chairman' | null>(null);
+  const [currentStaffId, setCurrentStaffId] = useState<string | null>(null);
   const [password, setPassword] = useState('');
+  const [chairmanPassword, setChairmanPassword] = useState('');
   const [loginError, setLoginError] = useState(false);
+  const [chairmanLoginError, setChairmanLoginError] = useState(false);
+  const [showStaffSelect, setShowStaffSelect] = useState(false);
+  const [showChairmanLogin, setShowChairmanLogin] = useState(false);
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [members, setMembers] = useState<any[]>([]);
@@ -63,56 +71,57 @@ export default function App() {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
+  const loadData = useCallback(async () => {
+    try {
+      const [fetchedTasks, fetchedMembers, fetchedDepts] = await Promise.all([
+        fetchTasks(view === 'trash'),
+        fetchMembers(),
+        fetchDepts()
+      ]);
+      setTasks(fetchedTasks);
+      setMembers(fetchedMembers);
+      setLiaisonDepts(fetchedDepts);
+    } catch (e) {
+      console.error('Failed to load initial data', e);
+    }
+  }, [view]);
+
   useEffect(() => {
     if (!userRole) return;
+    loadData();
+    const interval = setInterval(loadData, 5000);
+    return () => clearInterval(interval);
+  }, [userRole, loadData]);
 
-    const tasksRef = collection(db, 'tasks');
-    const qTasks = view === 'trash' 
-      ? query(tasksRef, where('deletedAt', '!=', null), orderBy('deletedAt', 'desc'))
-      : query(tasksRef, where('deletedAt', '==', null), orderBy('createdAt', 'desc'));
+  // Initial load specifically for staff selection list if not logged in
+  useEffect(() => {
+    if (!userRole) {
+      fetchMembers().then(setMembers).catch(console.error);
+    }
+  }, [userRole]);
 
-    const unsubscribeTasks = onSnapshot(qTasks, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
-      setTasks(data);
-    }, (error) => {
-      console.error('Failed to fetch tasks', error);
-    });
-
-    const membersRef = collection(db, 'members');
-    const qMembers = query(membersRef, orderBy('createdAt', 'desc'));
-    const unsubscribeMembers = onSnapshot(qMembers, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
-      setMembers(data);
-    }, (error) => {
-      console.error('Failed to fetch members', error);
-    });
-
-    const deptsRef = collection(db, 'liaisonDepartments');
-    const unsubscribeDepts = onSnapshot(deptsRef, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
-      setLiaisonDepts(data);
-    }, (error) => {
-      console.error('Failed to fetch liaison depts', error);
-    });
-
-    return () => {
-      unsubscribeTasks();
-      unsubscribeMembers();
-      unsubscribeDepts();
-    };
-  }, [view, userRole]);
-
-  const handleLogin = async (role: 'staff' | 'otis') => {
+  const handleLogin = async (role: 'staff' | 'otis' | 'chairman', staffId?: string) => {
     try {
-      if (role === 'staff') {
-        await signInAnonymously(auth);
+      if (role === 'staff' && staffId) {
         setUserRole('staff');
-      } else if (password === '123456') {
-        await signInAnonymously(auth);
-        setUserRole('otis');
-        setLoginError(false);
-      } else {
-        setLoginError(true);
+        setCurrentStaffId(staffId);
+        await loadData();
+      } else if (role === 'chairman') {
+        if (chairmanPassword === '123456') {
+          setUserRole('chairman');
+          setChairmanLoginError(false);
+          await loadData();
+        } else {
+          setChairmanLoginError(true);
+        }
+      } else if (role === 'otis') {
+        if (password === '123456') {
+          setUserRole('otis');
+          setLoginError(false);
+          await loadData();
+        } else {
+          setLoginError(true);
+        }
       }
     } catch (error) {
       console.error('Login failed', error);
@@ -136,46 +145,109 @@ export default function App() {
             <p className="text-slate-500 mt-2">请选择您的身份进入系统</p>
           </div>
 
-          <div className="space-y-4">
-            <button 
-              onClick={() => handleLogin('staff')}
-              className="w-full py-4 px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-bold transition-all flex items-center justify-between group"
-            >
-              <div className="flex items-center gap-3">
-                <Users className="w-5 h-5 text-slate-500" />
-                <span>我是员工 (直接进入)</span>
-              </div>
-              <ChevronRight className="w-5 h-5 text-slate-400 group-hover:translate-x-1 transition-transform" />
-            </button>
-
-            <div className="relative py-4">
-              <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-slate-200"></span></div>
-              <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-2 text-slate-400">或者</span></div>
-            </div>
-
-            <div className="space-y-3">
-              <div className="relative">
-                <input 
-                  type="password" 
-                  placeholder="请输入 Otis 访问密码" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleLogin('otis')}
-                  className={cn(
-                    "w-full py-4 px-6 bg-white border rounded-2xl outline-none transition-all font-medium",
-                    loginError ? "border-red-300 focus:ring-4 focus:ring-red-100" : "border-slate-200 focus:border-[#1abc9c] focus:ring-4 focus:ring-[#1abc9c]/10"
-                  )}
-                />
-                {loginError && <p className="text-red-500 text-xs mt-1 ml-2 font-medium">密码错误，请重试</p>}
-              </div>
+          {!showStaffSelect ? (
+            <div className="space-y-4">
               <button 
-                onClick={() => handleLogin('otis')}
-                className="w-full py-4 px-6 bg-[#1abc9c] hover:bg-[#16a085] text-white rounded-2xl font-bold shadow-lg shadow-[#1abc9c]/20 transition-all active:scale-[0.98]"
+                onClick={() => setShowStaffSelect(true)}
+                className="w-full py-4 px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-bold transition-all flex items-center justify-between group"
               >
-                以 Otis 身份登录
+                <div className="flex items-center gap-3">
+                  <Users className="w-5 h-5 text-slate-500" />
+                  <span>我是员工 (选择姓名)</span>
+                </div>
+                <ChevronRight className="w-5 h-5 text-slate-400 group-hover:translate-x-1 transition-transform" />
               </button>
+
+              {!showChairmanLogin ? (
+                <button 
+                  onClick={() => setShowChairmanLogin(true)}
+                  className="w-full py-4 px-6 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-2xl font-bold transition-all flex items-center justify-between group"
+                >
+                  <div className="flex items-center gap-3">
+                    <Users className="w-5 h-5 text-amber-600" />
+                    <span>主席</span>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-amber-600 group-hover:translate-x-1 transition-transform" />
+                </button>
+              ) : (
+                <div className="space-y-3 bg-amber-50/50 p-4 rounded-2xl border border-amber-100 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-bold text-amber-800 flex items-center gap-2">
+                       <Users className="w-4 h-4" /> 主席登录
+                    </span>
+                    <button onClick={() => setShowChairmanLogin(false)} className="text-amber-400 hover:text-amber-600 transition-colors">
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <input 
+                    type="password" 
+                    placeholder="请输入主席专用密码" 
+                    value={chairmanPassword}
+                    onChange={(e) => setChairmanPassword(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleLogin('chairman')}
+                    className={cn(
+                      "w-full py-3 px-4 bg-white border rounded-xl outline-none transition-all font-medium",
+                      chairmanLoginError ? "border-red-300 focus:ring-4 focus:ring-red-100" : "border-amber-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10"
+                    )}
+                    autoFocus
+                  />
+                  {chairmanLoginError && <p className="text-red-500 text-[10px] mt-0.5 ml-1 font-bold">密码验证失败</p>}
+                  <button 
+                    onClick={() => handleLogin('chairman')}
+                    className="w-full py-3 px-4 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold transition-all shadow-sm active:scale-[0.98]"
+                  >
+                    立即登录
+                  </button>
+                </div>
+              )}
+
+              <div className="relative py-4">
+                <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-slate-200"></span></div>
+                <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-2 text-slate-400">或者</span></div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="relative">
+                  <input 
+                    type="password" 
+                    placeholder="Otis登陆" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleLogin('otis')}
+                    className={cn(
+                      "w-full py-4 px-6 bg-white border rounded-2xl outline-none transition-all font-medium",
+                      loginError ? "border-red-300 focus:ring-4 focus:ring-red-100" : "border-slate-200 focus:border-[#1abc9c] focus:ring-4 focus:ring-[#1abc9c]/10"
+                    )}
+                  />
+                  {loginError && <p className="text-red-500 text-xs mt-1 ml-2 font-medium">密码错误，请重试</p>}
+                </div>
+                <button 
+                  onClick={() => handleLogin('otis')}
+                  className="w-full py-4 px-6 bg-[#1abc9c] hover:bg-[#16a085] text-white rounded-2xl font-bold shadow-lg shadow-[#1abc9c]/20 transition-all active:scale-[0.98]"
+                >
+                  以 Otis 身份登录
+                </button>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="space-y-4">
+               <button onClick={() => setShowStaffSelect(false)} className="text-sm font-medium text-slate-500 hover:text-slate-800 flex items-center gap-1 mb-4">
+                 <X className="w-4 h-4" /> 返回
+               </button>
+               <div className="max-h-60 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                 {members.length === 0 && <p className="text-center text-slate-500 py-4 text-sm">暂无员工数据</p>}
+                 {members.map(m => (
+                   <button
+                     key={m.id}
+                     onClick={() => handleLogin('staff', m.id)}
+                     className="w-full text-left px-4 py-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl font-medium transition-colors"
+                   >
+                     {m.name} <span className="text-xs text-slate-500 bg-slate-200 px-2 py-0.5 rounded ml-2">{DEPARTMENTS[m.department as DepartmentKey]?.label || m.department}</span>
+                   </button>
+                 ))}
+               </div>
+            </div>
+          )}
         </motion.div>
       </div>
     );
@@ -183,29 +255,20 @@ export default function App() {
 
   const handleSaveTask = async (taskData: any) => {
     try {
-      let isNew = false;
-      if (taskData.id) {
-        await updateDoc(doc(db, 'tasks', taskData.id.toString()), taskData);
-      } else {
-        isNew = true;
-        const newDocRef = doc(collection(db, 'tasks'));
-        await setDoc(newDocRef, {
-          ...taskData,
-          id: newDocRef.id,
-          createdAt: new Date().toISOString(),
-          deletedAt: null
-        });
-        taskData.id = newDocRef.id;
-      }
+      const isNew = !taskData.id;
+      const savedTask = await saveTask(taskData);
+      
       setIsTaskModalOpen(false);
       setEditingTask(null);
-      if (selectedTask && taskData.id === selectedTask.id) {
-        setSelectedTask({ ...selectedTask, ...taskData });
+      if (selectedTask && savedTask.id === selectedTask.id) {
+        setSelectedTask(savedTask);
       }
+      
+      await loadData();
       
       if (isNew) {
         toast.success('新待办已生成', {
-          description: taskData.name,
+          description: savedTask.name,
         });
       }
     } catch (error) {
@@ -216,8 +279,9 @@ export default function App() {
 
   const handleDeleteTask = async (id: string | number) => {
     try {
-      await updateDoc(doc(db, 'tasks', id.toString()), { deletedAt: new Date().toISOString() });
+      await updateTask(id.toString(), { deletedAt: new Date().toISOString() });
       setSelectedTask(null);
+      await loadData();
     } catch (error) {
       console.error('Failed to delete task', error);
     }
@@ -225,7 +289,8 @@ export default function App() {
 
   const handlePermanentDelete = async (id: string | number) => {
     try {
-      await deleteDoc(doc(db, 'tasks', id.toString()));
+      await deleteDbTask(id.toString());
+      await loadData();
     } catch (error) {
       console.error('Failed to permanent delete task', error);
     }
@@ -233,7 +298,8 @@ export default function App() {
 
   const handleRestoreTask = async (id: string | number) => {
     try {
-      await updateDoc(doc(db, 'tasks', id.toString()), { deletedAt: null });
+      await updateTask(id.toString(), { deletedAt: null });
+      await loadData();
     } catch (error) {
       console.error('Failed to restore task', error);
     }
@@ -241,10 +307,11 @@ export default function App() {
 
   const handleUpdateTask = async (id: string | number, updates: any) => {
     try {
-      await updateDoc(doc(db, 'tasks', id.toString()), updates);
+      await updateTask(id.toString(), updates);
       if (selectedTask?.id === id) {
         setSelectedTask({ ...selectedTask, ...updates });
       }
+      await loadData();
     } catch (error) {
       console.error('Failed to update task', error);
     }
@@ -252,16 +319,8 @@ export default function App() {
 
   const handleSaveMember = async (memberData: any) => {
     try {
-      if (memberData.id) {
-        await updateDoc(doc(db, 'members', memberData.id.toString()), memberData);
-      } else {
-        const newDocRef = doc(collection(db, 'members'));
-        await setDoc(newDocRef, {
-          ...memberData,
-          id: newDocRef.id,
-          createdAt: new Date().toISOString()
-        });
-      }
+      await saveMember(memberData);
+      await loadData();
     } catch (error) {
       console.error('Failed to save member', error);
     }
@@ -269,7 +328,8 @@ export default function App() {
 
   const handleDeleteMember = async (id: string | number) => {
     try {
-      await deleteDoc(doc(db, 'members', id.toString()));
+      await deleteMember(id.toString());
+      await loadData();
     } catch (error) {
       console.error('Failed to delete member', error);
     }
@@ -277,12 +337,8 @@ export default function App() {
 
   const handleSaveDept = async (deptData: any) => {
     try {
-      const newDocRef = doc(collection(db, 'liaisonDepartments'));
-      await setDoc(newDocRef, {
-        ...deptData,
-        id: newDocRef.id,
-        createdAt: new Date().toISOString()
-      });
+      await saveDept(deptData);
+      await loadData();
     } catch (error) {
       console.error('Failed to save dept', error);
     }
@@ -290,13 +346,25 @@ export default function App() {
 
   const handleDeleteDept = async (id: string | number) => {
     try {
-      await deleteDoc(doc(db, 'liaisonDepartments', id.toString()));
+      await deleteDept(id.toString());
+      await loadData();
     } catch (error) {
       console.error('Failed to delete dept', error);
     }
   };
 
   const filteredTasks = tasks.filter(task => {
+    // Role based visibility
+    if (userRole === 'chairman') {
+      if (!task.visibleToChairman) return false;
+    } else if (userRole === 'staff') {
+      const isLead = task.projectLead === currentStaffId;
+      const isTeam = task.teamMembers?.includes(currentStaffId || '');
+      if (!isLead && !isTeam) return false;
+    }
+    // Otis sees all
+
+    // Category and status filtering
     if (selectedDept !== 'all' && !task.departments?.includes(selectedDept)) return false;
     if (selectedStatus !== 'all' && task.status !== selectedStatus) return false;
     return true;
@@ -413,10 +481,7 @@ export default function App() {
                 onClick={() => setSelectedDept(key as DepartmentKey)}
                 className={cn("w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all", selectedDept === key ? "bg-[#1abc9c]/10 text-[#1abc9c]" : "text-slate-600 hover:bg-slate-100")}
               >
-                <div className="flex items-center gap-2">
-                  <div className={cn("w-2 h-2 rounded-full", dept.bg.replace('bg-', 'bg-').replace('50', '400'))} />
-                  <span>{dept.label}</span>
-                </div>
+                <span>{dept.label}</span>
               </button>
             ))}
           </div>
@@ -428,6 +493,12 @@ export default function App() {
               className={cn("w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all", selectedStatus === 'all' ? "bg-[#1abc9c]/10 text-[#1abc9c]" : "text-slate-600 hover:bg-slate-100")}
             >
               <span>全部</span>
+            </button>
+            <button 
+              onClick={() => setSelectedStatus('pending')}
+              className={cn("w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all", selectedStatus === 'pending' ? "bg-[#1abc9c]/10 text-[#1abc9c]" : "text-slate-600 hover:bg-slate-100")}
+            >
+              <span>待处理</span>
             </button>
             <button 
               onClick={() => setSelectedStatus('in_progress')}
@@ -489,6 +560,10 @@ export default function App() {
                   onRestore={() => handleRestoreTask(task.id)}
                   onPermanentDelete={() => handlePermanentDelete(task.id)}
                   canEdit={userRole === 'otis'}
+                  onToggleChairman={(e) => {
+                    e.stopPropagation();
+                    handleUpdateTask(task.id, { visibleToChairman: !task.visibleToChairman });
+                  }}
                 />
               ))}
             </AnimatePresence>
@@ -560,9 +635,10 @@ interface TaskCardProps {
   onRestore?: () => void;
   onPermanentDelete?: () => void;
   canEdit?: boolean;
+  onToggleChairman?: (e: React.MouseEvent) => void;
 }
 
-function TaskCard({ task, onClick, isTrash, onRestore, onPermanentDelete, canEdit }: TaskCardProps) {
+function TaskCard({ task, onClick, isTrash, onRestore, onPermanentDelete, canEdit, onToggleChairman }: TaskCardProps) {
   const primaryDept = task.departments?.[0] ? DEPARTMENTS[task.departments[0]] : null;
   
   return (
@@ -574,15 +650,31 @@ function TaskCard({ task, onClick, isTrash, onRestore, onPermanentDelete, canEdi
       transition={{ type: "spring", damping: 28, stiffness: 320 }}
       onClick={onClick}
       className={cn(
-        "bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col",
+        "bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col relative",
         !isTrash && "cursor-pointer"
       )}
     >
       {primaryDept && (
         <div className={cn("h-1.5 w-full", primaryDept.bg.replace('50', '400'))} />
       )}
-      <div className="p-5 flex flex-col flex-1">
-        <div className="flex items-start justify-between gap-3 mb-3">
+      
+      {canEdit && onToggleChairman && (
+        <button
+          onClick={onToggleChairman}
+          className={cn(
+            "absolute top-4 right-4 p-1.5 rounded-full transition-colors flex items-center justify-center border",
+            task.visibleToChairman 
+              ? "bg-amber-100 text-amber-600 border-amber-200" 
+              : "bg-slate-50 text-slate-300 border-slate-200 hover:text-slate-500 hover:bg-slate-100"
+          )}
+          title={task.visibleToChairman ? "主席可见" : "设为主席可见"}
+        >
+          <span className="text-[10px] font-bold px-1 whitespace-nowrap">主席</span>
+        </button>
+      )}
+
+      <div className="p-5 flex flex-col flex-1 mt-2">
+        <div className="flex items-start justify-between gap-3 mb-3 pr-10">
           <h3 className="font-semibold text-lg leading-tight line-clamp-2">{task.name}</h3>
           <StatusBadge status={task.status} />
         </div>
@@ -606,11 +698,15 @@ function TaskCard({ task, onClick, isTrash, onRestore, onPermanentDelete, canEdi
               {DEPARTMENTS[d].label}
             </span>
           ))}
-          {task.liaisonDepartments?.slice(0, 2).map(ld => (
-            <span key={ld} className="text-xs px-2 py-1 rounded-md font-medium bg-violet-50 text-violet-700 border border-violet-200">
-              {ld}
-            </span>
-          ))}
+          {task.liaisonDepartments?.slice(0, 2).map((ld: any, i: number) => {
+            const name = typeof ld === 'string' ? ld : ld.name;
+            const contact = typeof ld === 'string' ? '' : ld.contact;
+            return (
+              <span key={name + i} className="text-xs px-2 py-1 rounded-md font-medium bg-violet-50 text-violet-700 border border-violet-200">
+                {name}{contact ? `(${contact})` : ''}
+              </span>
+            );
+          })}
           {(task.liaisonDepartments?.length || 0) > 2 && (
             <span className="text-xs px-2 py-1 rounded-md font-medium bg-slate-50 text-slate-600 border border-slate-200">
               +{task.liaisonDepartments.length - 2}

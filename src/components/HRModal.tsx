@@ -49,7 +49,7 @@ export function HRModal({ isOpen, onClose, members, onSaveMember, onDeleteMember
             className={`pb-2 px-1 text-sm font-medium ${activeTab === 'depts' ? 'text-[#1abc9c] border-b-2 border-[#1abc9c]' : 'text-slate-500'}`}
             onClick={() => setActiveTab('depts')}
           >
-            协同部门管理
+            协助部门管理
           </button>
         </div>
 
@@ -157,7 +157,7 @@ export function HRModal({ isOpen, onClose, members, onSaveMember, onDeleteMember
               }}
               className="flex gap-2 max-w-sm"
             >
-              <input name="name" placeholder="添加协同部门..." className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#1abc9c]/50" />
+              <input name="name" placeholder="添加协助部门..." className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#1abc9c]/50" />
               <button type="submit" className="px-4 py-2 bg-[#1abc9c] text-white rounded-lg text-sm font-medium hover:bg-[#16a085]">添加</button>
             </form>
           </div>

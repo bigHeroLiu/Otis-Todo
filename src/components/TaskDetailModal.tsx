@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Edit2, Trash2, CheckCircle, Clock, Save, Sparkles, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '../lib/utils';
-import { summarizeTask } from '../services/geminiService';
+import { summarizeTask } from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 
@@ -121,6 +121,29 @@ export function TaskDetailModal({ isOpen, onClose, task, onUpdate, onDelete, onE
                 {task.description || '暂无描述'}
               </div>
             </div>
+
+            {task.liaisonDepartments && task.liaisonDepartments.length > 0 && (
+              <div>
+                <h4 className="text-sm font-medium text-slate-700 mb-2">协同部门</h4>
+                <div className="flex flex-wrap gap-2">
+                  {task.liaisonDepartments.map((ld: any, i: number) => {
+                    const name = typeof ld === 'string' ? ld : ld.name;
+                    const contact = typeof ld === 'string' ? '' : ld.contact;
+                    return (
+                      <div key={name + i} className="flex items-center gap-2 px-3 py-2 bg-violet-50 border border-violet-100 rounded-xl">
+                        <span className="text-xs font-bold text-violet-700 uppercase tracking-tighter">{name}</span>
+                        {contact && (
+                          <div className="flex items-center gap-1 text-xs text-violet-600 bg-white px-2 py-0.5 rounded-full shadow-sm border border-violet-50">
+                            <span className="opacity-60">对接人:</span>
+                            <span className="font-semibold">{contact}</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {canEdit && (
               <div>

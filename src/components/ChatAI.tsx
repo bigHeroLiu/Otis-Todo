@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { MessageSquare, Send, X, Bot, User, Loader2, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
-import { processNaturalLanguageTask } from '../services/geminiService';
+import { processNaturalLanguageTask } from '../services/api';
 
 interface Message {
   id: string;
