@@ -7,7 +7,7 @@ import { summarizeTask } from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 
-export function TaskDetailModal({ isOpen, onClose, task, onUpdate, onDelete, onEdit, canEdit }: any) {
+export function TaskDetailModal({ isOpen, onClose, task, onUpdate, onDelete, onEdit, canEdit, members }: any) {
   const [updateText, setUpdateText] = useState('');
   const [summary, setSummary] = useState<string | null>(null);
   const [isSummarizing, setIsSummarizing] = useState(false);
@@ -17,6 +17,10 @@ export function TaskDetailModal({ isOpen, onClose, task, onUpdate, onDelete, onE
   }, [task?.id]);
 
   if (!task) return null;
+
+  // Resolve lead name
+  const leadMember = members?.find((m: any) => m.id === task.projectLead || m.name === task.projectLead);
+  const leadName = leadMember ? leadMember.name : (task.projectLead || '未指派');
 
   const handleSummarize = async () => {
     setIsSummarizing(true);
@@ -81,7 +85,7 @@ export function TaskDetailModal({ isOpen, onClose, task, onUpdate, onDelete, onE
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm text-slate-500">负责人:</span>
-              <span className="text-sm font-medium">{task.projectLead || '未指派'}</span>
+              <span className="text-sm font-medium">{leadName}</span>
             </div>
           </div>
 
@@ -164,6 +168,36 @@ export function TaskDetailModal({ isOpen, onClose, task, onUpdate, onDelete, onE
                     <Save className="w-4 h-4" />
                     合并入描述
                   </button>
+                </div>
+              </div>
+            )}
+
+            {task.meetingInfo && (
+              <div>
+                <h4 className="text-sm font-medium text-indigo-700 mb-2 flex items-center gap-1.5 uppercase tracking-wider">
+                   会见安排
+                </h4>
+                <div className="bg-indigo-50/30 p-4 rounded-xl border border-indigo-100/50 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm shadow-sm ring-1 ring-black/5">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[10px] font-bold text-indigo-400 uppercase">会见人</span>
+                    <span className="font-semibold text-indigo-900">{task.meetingInfo.person || '未指定'}</span>
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[10px] font-bold text-indigo-400 uppercase">会见时间</span>
+                    <span className="font-semibold text-indigo-900">
+                       {task.meetingInfo.time ? format(new Date(task.meetingInfo.time), 'yyyy-MM-dd HH:mm') : '未指定'}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-0.5 sm:col-span-2">
+                    <span className="text-[10px] font-bold text-indigo-400 uppercase">地点</span>
+                    <span className="font-semibold text-indigo-900">{task.meetingInfo.location || '未指定'}</span>
+                  </div>
+                  {task.meetingInfo.agenda && (
+                    <div className="flex flex-col gap-0.5 sm:col-span-2 pt-2 border-t border-indigo-100">
+                      <span className="text-[10px] font-bold text-indigo-400 uppercase">事项概要</span>
+                      <p className="text-indigo-800 leading-relaxed whitespace-pre-wrap">{task.meetingInfo.agenda}</p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
-import { X, Plus, Trash2, Sparkles, Loader2 } from 'lucide-react';
+import { X, Plus, Trash2, Sparkles, Loader2, Users, MapPin, Calendar, ListTodo } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { format } from 'date-fns';
 import { motion } from 'motion/react';
@@ -148,82 +148,6 @@ export function TaskModal({ isOpen, onClose, task, onSave, members, liaisonDepts
                 />
               </div>
 
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2 text-violet-500">
-                  <span className="w-1 h-4 bg-violet-500 rounded-full"></span>
-                  会见信息
-                </h3>
-                <label className="flex items-center gap-2 cursor-pointer group">
-                  <div className={cn(
-                    "w-10 h-6 rounded-full relative transition-all duration-300",
-                    isMeeting ? "bg-[#1abc9c]" : "bg-slate-200"
-                  )}>
-                    <div className={cn(
-                      "absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-all duration-300 shadow-sm",
-                      isMeeting ? "translate-x-4" : ""
-                    )} />
-                  </div>
-                  <input 
-                    type="checkbox" 
-                    checked={isMeeting}
-                    onChange={e => {
-                      setIsMeeting(e.target.checked);
-                      if (e.target.checked && !formData.meetingInfo) {
-                        setFormData({...formData, meetingInfo: {}});
-                      }
-                    }}
-                    className="hidden"
-                  />
-                  <span className="text-sm font-semibold text-slate-600 group-hover:text-slate-900 transition-colors">开启会见</span>
-                </label>
-              </div>
-
-              {isMeeting && (
-                <motion.div 
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  className="bg-violet-50/30 p-5 rounded-2xl space-y-6 border border-violet-100/50"
-                >
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div>
-                      <label className="block text-xs font-bold text-violet-700 uppercase mb-1.5 ml-1">会见人</label>
-                      <input 
-                        type="text"
-                        value={formData.meetingInfo?.person || ''} 
-                        onChange={e => setFormData({...formData, meetingInfo: {...formData.meetingInfo, person: e.target.value}})} 
-                        className="w-full bg-white border border-violet-100 rounded-xl px-4 py-3 text-sm outline-none focus:ring-4 focus:ring-violet-500/10 focus:border-violet-400 transition-all"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-violet-700 uppercase mb-1.5 ml-1">会见时间</label>
-                      <input 
-                        type="datetime-local" 
-                        value={formData.meetingInfo?.time || ''} 
-                        onChange={e => setFormData({...formData, meetingInfo: {...formData.meetingInfo, time: e.target.value}})} 
-                        className="w-full bg-white border border-violet-100 rounded-xl px-4 py-3 text-sm outline-none focus:ring-4 focus:ring-violet-500/10 focus:border-violet-400 transition-all"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-violet-700 uppercase mb-1.5 ml-1">会见地点</label>
-                    <input 
-                      value={formData.meetingInfo?.location || ''} 
-                      onChange={e => setFormData({...formData, meetingInfo: {...formData.meetingInfo, location: e.target.value}})} 
-                      className="w-full bg-white border border-violet-100 rounded-xl px-4 py-3 text-sm outline-none focus:ring-4 focus:ring-violet-500/10 focus:border-violet-400 transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-violet-700 uppercase mb-1.5 ml-1">会见事项</label>
-                    <textarea 
-                      rows={2} 
-                      value={formData.meetingInfo?.agenda || ''} 
-                      onChange={e => setFormData({...formData, meetingInfo: {...formData.meetingInfo, agenda: e.target.value}})} 
-                      className="w-full bg-white border border-violet-100 rounded-xl px-4 py-3 text-sm outline-none focus:ring-4 focus:ring-violet-500/10 focus:border-violet-400 transition-all resize-none"
-                    />
-                  </div>
-                </motion.div>
-              )}
-
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-1.5 ml-1">详细描述</label>
                 <textarea 
@@ -235,6 +159,95 @@ export function TaskModal({ isOpen, onClose, task, onSave, members, liaisonDepts
                 />
               </div>
             </div>
+          </section>
+
+          <section className="space-y-4 pt-4 border-t border-slate-100">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2 text-indigo-500">
+                <span className="w-1 h-4 bg-indigo-500 rounded-full"></span>
+                会见安排
+              </h3>
+              <label className="flex items-center gap-2 cursor-pointer group">
+                <div className={cn(
+                  "w-10 h-6 rounded-full relative transition-all duration-300",
+                  isMeeting ? "bg-indigo-500" : "bg-slate-200"
+                )}>
+                  <div className={cn(
+                    "absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-all duration-300 shadow-sm",
+                    isMeeting ? "translate-x-4" : ""
+                  )} />
+                </div>
+                <input 
+                  type="checkbox" 
+                  checked={isMeeting}
+                  onChange={e => {
+                    setIsMeeting(e.target.checked);
+                    if (e.target.checked && !formData.meetingInfo) {
+                      setFormData({...formData, meetingInfo: {}});
+                    }
+                  }}
+                  className="hidden"
+                />
+                <span className="text-sm font-semibold text-slate-600 group-hover:text-slate-900 transition-colors">开启会见详情</span>
+              </label>
+            </div>
+
+            {isMeeting && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="bg-indigo-50/30 p-5 rounded-2xl space-y-6 border border-indigo-100/50"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-xs font-bold text-indigo-700 uppercase mb-2 ml-1 flex items-center gap-1.5">
+                      <Users className="w-3.5 h-3.5" /> 会见人
+                    </label>
+                    <input 
+                      type="text"
+                      placeholder="姓名或单位"
+                      value={formData.meetingInfo?.person || ''} 
+                      onChange={e => setFormData({...formData, meetingInfo: {...formData.meetingInfo, person: e.target.value}})} 
+                      className="w-full bg-white border border-indigo-100 rounded-xl px-4 py-3 text-sm outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-400 transition-all shadow-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-indigo-700 uppercase mb-2 ml-1 flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5" /> 会见时间
+                    </label>
+                    <input 
+                      type="datetime-local" 
+                      value={formData.meetingInfo?.time || ''} 
+                      onChange={e => setFormData({...formData, meetingInfo: {...formData.meetingInfo, time: e.target.value}})} 
+                      className="w-full bg-white border border-indigo-100 rounded-xl px-4 py-3 text-sm outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-400 transition-all shadow-sm"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-indigo-700 uppercase mb-2 ml-1 flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5" /> 会见地点
+                  </label>
+                  <input 
+                    placeholder="具体会议室或地点"
+                    value={formData.meetingInfo?.location || ''} 
+                    onChange={e => setFormData({...formData, meetingInfo: {...formData.meetingInfo, location: e.target.value}})} 
+                    className="w-full bg-white border border-indigo-100 rounded-xl px-4 py-3 text-sm outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-400 transition-all shadow-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-indigo-700 uppercase mb-2 ml-1 flex items-center gap-1.5">
+                    <ListTodo className="w-3.5 h-3.5" /> 会见事项及议程
+                  </label>
+                  <textarea 
+                    rows={3} 
+                    placeholder="请输入主要讨论内容或注意事项..."
+                    value={formData.meetingInfo?.agenda || ''} 
+                    onChange={e => setFormData({...formData, meetingInfo: {...formData.meetingInfo, agenda: e.target.value}})} 
+                    className="w-full bg-white border border-indigo-100 rounded-xl px-4 py-3 text-sm outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-400 transition-all resize-none shadow-sm"
+                  />
+                </div>
+              </motion.div>
+            )}
           </section>
 
           <section className="space-y-4">
@@ -270,7 +283,7 @@ export function TaskModal({ isOpen, onClose, task, onSave, members, liaisonDepts
                 >
                   <option value="">请选择负责人</option>
                   {members.map((m: any) => (
-                    <option key={m.id} value={m.name}>{m.name} ({m.department})</option>
+                    <option key={m.id} value={m.id}>{m.name} ({m.department})</option>
                   ))}
                 </select>
               </div>

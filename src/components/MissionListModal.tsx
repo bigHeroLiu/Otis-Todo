@@ -8,7 +8,12 @@ import { DEPARTMENTS } from '../App';
 export function MissionListModal({ isOpen, onClose, tasks }: any) {
   const inProgressTasks = tasks
     .filter((t: any) => t.status === 'in_progress')
-    .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    .sort((a: any, b: any) => {
+      // Sort by sortOrder first, then by createdAt descending
+      const orderDiff = (a.sortOrder || 0) - (b.sortOrder || 0);
+      if (orderDiff !== 0) return orderDiff;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
 
   const handlePrint = () => {
     window.print();
@@ -47,8 +52,27 @@ export function MissionListModal({ isOpen, onClose, tasks }: any) {
                 <div className="col-span-2 text-sm text-slate-500 font-mono">
                   {format(new Date(task.createdAt), 'MM/dd HH:mm')}
                 </div>
-                <div className="col-span-4 text-sm font-bold text-slate-800 pr-4">
-                  {task.name}
+                <div className="col-span-4 text-sm font-bold text-slate-800 pr-4 flex flex-col gap-1">
+                  <span>{task.name}</span>
+                  {task.meetingInfo && (
+                    <div className="text-[10px] text-indigo-600 font-medium space-y-0.5">
+                      <div className="flex items-center gap-1">
+                        <span className="shrink-0 bg-indigo-100 px-1 rounded text-[9px]">会见</span>
+                        <span className="truncate font-bold">{task.meetingInfo.person} | {task.meetingInfo.location}</span>
+                      </div>
+                      {task.meetingInfo.agenda && (
+                        <div className="pl-1 italic text-slate-500 line-clamp-1 border-l border-indigo-200 ml-1">
+                          {task.meetingInfo.agenda}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {task.tripInfo && (
+                    <div className="text-[10px] text-[#1abc9c] font-medium flex items-center gap-1">
+                      <span className="shrink-0 bg-[#1abc9c]/10 px-1 rounded">出差</span>
+                      <span className="truncate">{task.tripInfo.destination} | {task.tripInfo.dates}</span>
+                    </div>
+                  )}
                 </div>
                 <div className="col-span-3">
                   <span className={cn("inline-flex px-2.5 py-1 rounded-full text-xs font-medium border", config.bg, config.color, config.border)}>

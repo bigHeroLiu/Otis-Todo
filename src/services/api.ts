@@ -69,6 +69,15 @@ export async function deleteTask(id: string) {
   return res.json();
 }
 
+export async function reorderTasks(orders: { id: string, sortOrder: number }[]) {
+  const res = await fetch(`${API_BASE}/tasks/reorder`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ orders }),
+  });
+  return res.json();
+}
+
 export async function fetchMembers() {
   const res = await fetch(`${API_BASE}/members`);
   return res.json();

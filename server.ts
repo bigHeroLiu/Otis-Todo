@@ -40,8 +40,11 @@ db.exec(`
     status TEXT,
     currentUpdate TEXT,
     tripInfo TEXT,
+    meetingInfo TEXT,
+    sortOrder INTEGER DEFAULT 0,
     deletedAt TEXT,
     createdAt TEXT,
+    updatedAt TEXT,
     visibleToChairman INTEGER DEFAULT 0
   );
 
@@ -63,9 +66,19 @@ db.exec(`
 // Try to alter if missing
 try {
   db.exec(`ALTER TABLE tasks ADD COLUMN visibleToChairman INTEGER DEFAULT 0;`);
-} catch(e) {
-  // column already exists
-}
+} catch(e) {}
+
+try {
+  db.exec(`ALTER TABLE tasks ADD COLUMN updatedAt TEXT;`);
+} catch(e) {}
+
+try {
+  db.exec(`ALTER TABLE tasks ADD COLUMN meetingInfo TEXT;`);
+} catch(e) {}
+
+try {
+  db.exec(`ALTER TABLE tasks ADD COLUMN sortOrder INTEGER DEFAULT 0;`);
+} catch(e) {}
 
 // Helper to generate IDs
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -79,7 +92,7 @@ app.get('/api/tasks', (req, res) => {
   if (deleted === 'true') {
     stmt = db.prepare('SELECT * FROM tasks WHERE deletedAt IS NOT NULL ORDER BY deletedAt DESC');
   } else {
-    stmt = db.prepare('SELECT * FROM tasks WHERE deletedAt IS NULL ORDER BY createdAt DESC');
+    stmt = db.prepare('SELECT * FROM tasks WHERE deletedAt IS NULL ORDER BY sortOrder ASC, createdAt DESC');
   }
   const rows = stmt.all();
   // Decode JSON
@@ -89,22 +102,38 @@ app.get('/api/tasks', (req, res) => {
     teamMembers: JSON.parse(row.teamMembers || '[]'),
     liaisonDepartments: JSON.parse(row.liaisonDepartments || '[]'),
     tripInfo: row.tripInfo ? JSON.parse(row.tripInfo) : null,
+    meetingInfo: row.meetingInfo ? JSON.parse(row.meetingInfo) : null,
     visibleToChairman: !!row.visibleToChairman
   }));
   res.json(tasks);
 });
 
 app.post('/api/tasks', (req, res) => {
-  const { id = generateId(), name, description, departments, projectLead, teamMembers, liaisonDepartments, status, currentUpdate, tripInfo, deletedAt, visibleToChairman = false, createdAt = new Date().toISOString() } = req.body;
+  const { id = generateId(), name, description, departments, projectLead, teamMembers, liaisonDepartments, status, currentUpdate, tripInfo, meetingInfo, deletedAt, visibleToChairman = false, createdAt = new Date().toISOString(), sortOrder = 0 } = req.body;
+  const updatedAt = createdAt;
   const stmt = db.prepare(`
-    INSERT INTO tasks (id, name, description, departments, projectLead, teamMembers, liaisonDepartments, status, currentUpdate, tripInfo, deletedAt, visibleToChairman, createdAt)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO tasks (id, name, description, departments, projectLead, teamMembers, liaisonDepartments, status, currentUpdate, tripInfo, meetingInfo, sortOrder, deletedAt, visibleToChairman, createdAt, updatedAt)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
   stmt.run(
     id, name, description, JSON.stringify(departments), projectLead, JSON.stringify(teamMembers), JSON.stringify(liaisonDepartments),
-    status, currentUpdate, tripInfo ? JSON.stringify(tripInfo) : null, deletedAt || null, visibleToChairman ? 1 : 0, createdAt
+    status, currentUpdate, tripInfo ? JSON.stringify(tripInfo) : null, meetingInfo ? JSON.stringify(meetingInfo) : null, sortOrder, deletedAt || null, visibleToChairman ? 1 : 0, createdAt, updatedAt
   );
   res.json({ id });
+});
+
+app.post('/api/tasks/reorder', (req, res) => {
+  const { orders } = req.body; // Expecting [{ id: string, sortOrder: number }]
+  const updateStmt = db.prepare('UPDATE tasks SET sortOrder = ? WHERE id = ?');
+  
+  const transaction = db.transaction((rows) => {
+    for (const row of rows) {
+      updateStmt.run(row.sortOrder, row.id);
+    }
+  });
+
+  transaction(orders);
+  res.json({ success: true });
 });
 
 app.put('/api/tasks/:id', (req, res) => {
@@ -127,18 +156,21 @@ app.put('/api/tasks/:id', (req, res) => {
     status: body.status !== undefined ? body.status : existing.status,
     currentUpdate: body.currentUpdate !== undefined ? body.currentUpdate : existing.currentUpdate,
     tripInfo: body.tripInfo !== undefined ? (body.tripInfo ? JSON.stringify(body.tripInfo) : null) : existing.tripInfo,
+    meetingInfo: body.meetingInfo !== undefined ? (body.meetingInfo ? JSON.stringify(body.meetingInfo) : null) : existing.meetingInfo,
+    sortOrder: body.sortOrder !== undefined ? body.sortOrder : existing.sortOrder,
     deletedAt: body.deletedAt !== undefined ? body.deletedAt : existing.deletedAt,
-    visibleToChairman: body.visibleToChairman !== undefined ? (body.visibleToChairman ? 1 : 0) : existing.visibleToChairman
+    visibleToChairman: body.visibleToChairman !== undefined ? (body.visibleToChairman ? 1 : 0) : existing.visibleToChairman,
+    updatedAt: new Date().toISOString()
   };
 
   const stmt = db.prepare(`
     UPDATE tasks 
-    SET name = ?, description = ?, departments = ?, projectLead = ?, teamMembers = ?, liaisonDepartments = ?, status = ?, currentUpdate = ?, tripInfo = ?, deletedAt = ?, visibleToChairman = ?
+    SET name = ?, description = ?, departments = ?, projectLead = ?, teamMembers = ?, liaisonDepartments = ?, status = ?, currentUpdate = ?, tripInfo = ?, meetingInfo = ?, sortOrder = ?, deletedAt = ?, visibleToChairman = ?, updatedAt = ?
     WHERE id = ?
   `);
   stmt.run(
     updated.name, updated.description, updated.departments, updated.projectLead, updated.teamMembers, updated.liaisonDepartments,
-    updated.status, updated.currentUpdate, updated.tripInfo, updated.deletedAt, updated.visibleToChairman, id
+    updated.status, updated.currentUpdate, updated.tripInfo, updated.meetingInfo, updated.sortOrder, updated.deletedAt, updated.visibleToChairman, updated.updatedAt, id
   );
   res.json({ success: true });
 });
