@@ -81,17 +81,7 @@ export function TaskModal({ isOpen, onClose, task, onSave, members, liaisonDepts
     if (!formData.tripInfo) return;
     setIsEstimating(true);
     try {
-      let userLocation = '';
-      try {
-        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
-        });
-        userLocation = `纬度: ${position.coords.latitude}, 经度: ${position.coords.longitude}`;
-      } catch (e) {
-        console.log("Could not get location", e);
-      }
-      
-      const estimate = await estimateTravelTime(formData.tripInfo, userLocation);
+      const estimate = await estimateTravelTime(formData.tripInfo, '');
       if (estimate) {
         setFormData((prev: any) => ({
           ...prev,

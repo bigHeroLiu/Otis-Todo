@@ -7,7 +7,7 @@ import { summarizeTask } from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 
-export function TaskDetailModal({ isOpen, onClose, task, onUpdate, onDelete, onEdit, canEdit, members }: any) {
+export function TaskDetailModal({ isOpen, onClose, task, onUpdate, onDelete, onEdit, canEditDetails, canUpdateStatus, members }: any) {
   const [updateText, setUpdateText] = useState('');
   const [summary, setSummary] = useState<string | null>(null);
   const [isSummarizing, setIsSummarizing] = useState(false);
@@ -57,7 +57,7 @@ export function TaskDetailModal({ isOpen, onClose, task, onUpdate, onDelete, onE
         <DialogHeader className="pr-10">
           <div className="flex items-start justify-between gap-4">
             <DialogTitle className="text-xl leading-tight">{task.name}</DialogTitle>
-            {canEdit && (
+            {canEditDetails && (
               <div className="flex items-center gap-2 shrink-0">
                 <button onClick={() => onEdit(task)} className="p-1.5 text-slate-400 hover:text-[#1abc9c] bg-slate-50 rounded-md"><Edit2 className="w-4 h-4" /></button>
                 <button onClick={() => onDelete(task.id)} className="p-1.5 text-slate-400 hover:text-red-500 bg-slate-50 rounded-md"><Trash2 className="w-4 h-4" /></button>
@@ -71,12 +71,12 @@ export function TaskDetailModal({ isOpen, onClose, task, onUpdate, onDelete, onE
             <div className="flex items-center gap-2">
               <span className="text-sm text-slate-500">状态:</span>
               <button 
-                onClick={() => canEdit && onUpdate(task.id, { status: task.status === 'completed' ? 'in_progress' : 'completed' })}
-                disabled={!canEdit}
+                onClick={() => canUpdateStatus && onUpdate(task.id, { status: task.status === 'completed' ? 'in_progress' : 'completed' })}
+                disabled={!canUpdateStatus}
                 className={cn(
                   "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
                   task.status === 'completed' ? "bg-emerald-100 text-emerald-700" : "bg-blue-100 text-blue-700",
-                  !canEdit && "cursor-default"
+                  !canUpdateStatus && "cursor-default"
                 )}
               >
                 {task.status === 'completed' ? <CheckCircle className="w-4 h-4" /> : <Clock className="w-4 h-4" />}
@@ -149,7 +149,7 @@ export function TaskDetailModal({ isOpen, onClose, task, onUpdate, onDelete, onE
               </div>
             )}
 
-            {canEdit && (
+            {canUpdateStatus && (
               <div>
                 <h4 className="text-sm font-medium text-slate-700 mb-2">添加进展</h4>
                 <div className="flex gap-2">

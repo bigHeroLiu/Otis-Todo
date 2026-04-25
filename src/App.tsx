@@ -10,6 +10,7 @@ import {
   closestCenter,
   KeyboardSensor,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   DragEndEvent
@@ -93,7 +94,17 @@ export default function App() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5, // Requires 5px movement before dragging starts
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250, // Requires 250ms hold to start dragging on touch devices
+        tolerance: 5,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -762,7 +773,8 @@ export default function App() {
         onUpdate={handleUpdateTask}
         onDelete={(id: string) => { handleDeleteTask(id); setSelectedTask(null); }}
         onEdit={(task: Task) => { setSelectedTask(null); setEditingTask(task); setIsTaskModalOpen(true); }}
-        canEdit={userRole === 'otis'}
+        canEditDetails={userRole === 'otis'}
+        canUpdateStatus={userRole === 'otis' || userRole === 'staff'}
         members={members}
       />
 
@@ -859,7 +871,7 @@ function TaskCard({ task, onClick, isTrash, onRestore, onPermanentDelete, canEdi
       {/* Drag & Chairman Tools */}
       <div className={cn(
         "absolute top-2 right-2 flex items-center gap-1 transition-opacity duration-200 z-10",
-        task.visibleToChairman ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+        task.visibleToChairman ? "opacity-100" : "opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
       )}>
         {canEdit && !isTrash && (
           <div 

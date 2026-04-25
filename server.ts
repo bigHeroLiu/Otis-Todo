@@ -80,6 +80,10 @@ try {
   db.exec(`ALTER TABLE tasks ADD COLUMN sortOrder INTEGER DEFAULT 0;`);
 } catch(e) {}
 
+// Auto-seed data on boot to prevent appearing "empty" during preview lifecycle
+import { seedDatabaseIfEmpty } from './src/databaseSeeder';
+seedDatabaseIfEmpty(db);
+
 // Helper to generate IDs
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
@@ -238,8 +242,6 @@ app.delete('/api/depts/:id', (req, res) => {
 
 app.post('/api/ai/extract-task', async (req, res) => {
   const { input, userLocation } = req.body;
-  const locationContext = userLocation ? `\n用户的当前位置坐标为：${userLocation}。请在计算通勤时间时使用此位置作为起点。` : '\n如果用户未提供当前位置，请在 estimatedTravelTime 中提示“由于未获取到当前位置，无法计算通勤时间”。';
-
   const systemPrompt = `你是一个高效的行政助手。你的任务是从用户的口语化描述中提取待办事项信息，并以 JSON 格式返回。
       
   返回的 JSON 结构如下：
@@ -265,7 +267,7 @@ app.post('/api/ai/extract-task', async (req, res) => {
   
   重要提示：
   1. 请务必仔细提取“司机手机号”(driverPhone) 和“接车地点”(driverPickupLocation)。
-  2. 如果用户提供了出差行程，请预估行程时间并填入 estimatedTravelTime 字段。${locationContext}
+  2. 如果用户提供了出差行程，请预估行程时间并填入 estimatedTravelTime 字段。
   3. 当前日期是：${new Date().toLocaleDateString()}
   
   请确保输出是纯 JSON，不要带 markdown 代码块。`;
@@ -298,15 +300,13 @@ app.post('/api/ai/extract-task', async (req, res) => {
 });
 
 app.post('/api/ai/estimate-travel', async (req, res) => {
-  const { tripInfo, userLocation } = req.body;
-  const locationContext = userLocation ? `用户的当前位置坐标为：${userLocation}。` : '';
+  const { tripInfo } = req.body;
   const prompt = `请作为高效的行政助手，根据以下出差信息，帮我预估行程时间。
   目的地：${tripInfo?.destination || '未知'}
   交通方式：${tripInfo?.transport || '未知'}
   航班号/车次：${tripInfo?.flightNo || '未知'}
-  ${locationContext}
   
-  请用一句话简明扼要地总结行程时间预估（例如：“飞行时间约2小时15分钟，从当前位置到机场预计需要45分钟。”）。`;
+  请用一句话简明扼要地总结行程时间预估（例如：“飞行时间约2小时15分钟，从机场到市中心预计需要45分钟。”）。`;
 
   try {
     const completion = await openai.chat.completions.create({
@@ -349,22 +349,37 @@ app.post('/api/ai/summarize-task', async (req, res) => {
 // Boot and Vite Integration
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
+    console.log('Starting Vite in middleware mode...');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
     });
     app.use(vite.middlewares);
   } else {
+    console.log('Serving from dist folder in production mode...');
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
-    app.get('*', (req, res) => {
+    app.get('*all', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`>>> Server is listenining on http://0.0.0.0:${PORT}`);
+    console.log(`>>> Environment: ${process.env.NODE_ENV || 'development'}`);
   });
 }
 
-startServer();
+// Global error handlers to prevent silent crashes
+process.on('uncaughtException', (err) => {
+  console.error('CRITICAL: Uncaught Exception:', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('CRITICAL: Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+startServer().catch(err => {
+  console.error('FAILED to start server:', err);
+  process.exit(1);
+});

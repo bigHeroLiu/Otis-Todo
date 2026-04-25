@@ -1,0 +1,995 @@
+[
+  {
+    "id": "49",
+    "name": "同Zoe会议",
+    "description": "1、过美国高管合同。\n2、同zoe跟进KUKA案件，我方论据不足，建议暂不回复。\n3、提供关于Matt和Dylan的动向，供zoe参考。",
+    "departments": [
+      "investment"
+    ],
+    "projectLead": "",
+    "teamMembers": [],
+    "liaisonDepartments": [
+      "美国工厂"
+    ],
+    "status": "pending",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-21T08:05:27.998Z",
+    "updatedAt": "2026-04-21T17:38:34.409Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "48",
+    "name": "徐州茂星补缴土地增值税",
+    "description": "茂星AB地块有一笔税金待支付，系2025年至2026年3月需要补缴的土地增值税及滞纳金，约160万元。这笔税款产生的原因是：住宅板块报税之前，基本户南京银行被冻结，日常缴税被中断，现基本户已解封，申请补报2025年1月至2026年3月所属期的涉税税款。目前，此笔补缴税款财务部曹方及王勇已向主席请示补缴，主席未同意，让财务部先把应退还的土地增值税问题搞清楚。",
+    "departments": [
+      "family_office"
+    ],
+    "projectLead": "刘海涛",
+    "teamMembers": [
+      "刘海涛"
+    ],
+    "liaisonDepartments": [
+      "财务部"
+    ],
+    "status": "in_progress",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-21T07:29:52.141Z",
+    "updatedAt": "2026-04-21T07:29:52.141Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "47",
+    "name": "上海艺嘉股权抵债事宜",
+    "description": "徐州茂星用C地块6套房以单价约12200元抵偿了C地块总包江苏省省二建717万元债务，而省二建欠上海艺嘉1274万工程款，上海艺嘉欠车建新约1700万股权回购款，车建新欠敏华大额债务。车建新建议让省二建将这6套房产工抵给上海艺嘉，然后上海艺嘉再转给车建新抵偿部分债务。这个过程中，我们发现上海艺嘉这个标的有可持续盈利能力，拟让车建新将对上海艺嘉股权回购款债权转让给我司直接抵债，若成功，我司有机会成为上海艺嘉的股东并享有每年的分红（据上海艺嘉自己披露，目前上海艺嘉年收入约1亿元，净利润约2000万元）。目前我们需要协调省二建愿意将这6套房产工抵给上海艺嘉抵债，同步再去协商车建新将剩余股权回购款债权转让给我司抵债。\n\n【2026/04/21 07:25 更新】\n我司联系了省二建的负责人章晓鹏，对方明确6套工抵房有5套已找到下家接盘，不愿意工抵给上海艺嘉，剩余1套价值约153万可以工抵给上海艺嘉. 从章晓鹏处了解，省二建与上海艺嘉关系紧张，源于上海艺嘉曾因200万债务诉讼过省二建，另外，虽然章晓鹏曾是车建新的下属，但他对车建新可能也有点儿意见，不太愿意配合此事。",
+    "departments": [
+      "family_office"
+    ],
+    "projectLead": "刘海涛",
+    "teamMembers": [
+      "刘海涛"
+    ],
+    "liaisonDepartments": [
+      "投资部",
+      "法务部"
+    ],
+    "status": "in_progress",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-21T07:18:06.522Z",
+    "updatedAt": "2026-04-21T07:25:54.812Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "46",
+    "name": "光伏发电补贴",
+    "description": "大亚湾总部工厂于2014年建成光伏发电项目，参与国家能源局可再生能源发电项目补贴。自2022年后，大亚湾工厂未再收到相关补贴。\n\n【2026/04/16 06:07 更新】\n1、关于补贴合规发放清单的发文机构，于4.15前往大亚湾供电局核实情况，供电局表示其上级政府监管机构为惠州能源和重点项目局。\n2、联系南方监管局核查组负责人员，待进行公司内部访谈追溯。",
+    "departments": [
+      "investment"
+    ],
+    "projectLead": "谢配琪",
+    "teamMembers": [
+      "谢佩琪"
+    ],
+    "liaisonDepartments": [
+      "工程部"
+    ],
+    "status": "in_progress",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-16T06:01:17.803Z",
+    "updatedAt": "2026-04-16T06:07:42.569Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "45",
+    "name": "法务流程改进",
+    "description": "流程简化及明确分权待优化问题：\n1）合同、报销、付款等线上审批流程繁琐、效率低下；\n2）涉及诉讼，相关部门证据收集困难；\n3）诉讼案件谁来付款，责任人不明确。\n\n【2026/04/16 05:34 更新】\n法务部工作管理台账已出demo，已展示给老板看。",
+    "departments": [
+      "legal"
+    ],
+    "projectLead": "刘希",
+    "teamMembers": [
+      "刘希"
+    ],
+    "liaisonDepartments": [
+      "AI部门"
+    ],
+    "status": "in_progress",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-16T05:29:53.951Z",
+    "updatedAt": "2026-04-16T05:48:27.869Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "44",
+    "name": "APEC办理",
+    "description": "2.27线上受理，预计审批时长6个月",
+    "departments": [
+      "personal"
+    ],
+    "projectLead": "杨智鑫",
+    "teamMembers": [
+      "杨智鑫",
+      "黄玲玲"
+    ],
+    "liaisonDepartments": [],
+    "status": "pending",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-16T04:04:16.997Z",
+    "updatedAt": "2026-04-16T04:04:16.997Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "43",
+    "name": "美国L1签证",
+    "description": "3.21已提交基本资料",
+    "departments": [
+      "personal"
+    ],
+    "projectLead": "谢佩琪",
+    "teamMembers": [
+      "谢佩琪"
+    ],
+    "liaisonDepartments": [],
+    "status": "in_progress",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-16T04:03:35.613Z",
+    "updatedAt": "2026-04-16T04:03:35.613Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "42",
+    "name": "高才续签",
+    "description": "3.31递交，预计审批时长4-6周",
+    "departments": [
+      "personal"
+    ],
+    "projectLead": "谢佩琪",
+    "teamMembers": [
+      "谢佩琪"
+    ],
+    "liaisonDepartments": [],
+    "status": "in_progress",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-16T04:02:50.244Z",
+    "updatedAt": "2026-04-16T04:02:50.244Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "41",
+    "name": "新办惠州社保卡",
+    "description": "新办本地社保卡关联医保账户。",
+    "departments": [
+      "personal"
+    ],
+    "projectLead": "谢佩琪",
+    "teamMembers": [
+      "谢佩琪"
+    ],
+    "liaisonDepartments": [],
+    "status": "pending",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-16T04:01:44.312Z",
+    "updatedAt": "2026-04-16T04:01:44.312Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "40",
+    "name": "英国签证",
+    "description": "申办英国两年多次签证。",
+    "departments": [
+      "personal"
+    ],
+    "projectLead": "刘海涛",
+    "teamMembers": [
+      "刘海涛",
+      "贾涵涛"
+    ],
+    "liaisonDepartments": [],
+    "status": "in_progress",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-16T03:59:55.645Z",
+    "updatedAt": "2026-04-16T03:59:55.645Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "39",
+    "name": "广州体检",
+    "description": "测幽门螺旋杆菌",
+    "departments": [
+      "personal"
+    ],
+    "projectLead": "",
+    "teamMembers": [],
+    "liaisonDepartments": [],
+    "status": "pending",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-16T03:58:41.694Z",
+    "updatedAt": "2026-04-16T03:58:41.694Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "38",
+    "name": "鼎晖资本谢方约见",
+    "description": "因19-20日赴美，需将原定香港会面推迟至5月中，待确认最终时间。",
+    "departments": [
+      "family_office"
+    ],
+    "projectLead": "",
+    "teamMembers": [],
+    "liaisonDepartments": [],
+    "status": "pending",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-16T03:51:25.552Z",
+    "updatedAt": "2026-04-21T17:37:52.209Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "37",
+    "name": "Knight Frank Vera王桢约见",
+    "description": "董荷斌约我5月中后期在香港or新加坡见，待决定与回复。",
+    "departments": [
+      "family_office"
+    ],
+    "projectLead": "",
+    "teamMembers": [],
+    "liaisonDepartments": [],
+    "status": "pending",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-16T03:50:47.426Z",
+    "updatedAt": "2026-04-21T17:43:19.568Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "36",
+    "name": "会见Zach",
+    "description": "纽约时间：4月24日11：30\n地点：Sarabeth's,NY New York Manhattan",
+    "departments": [
+      "investment"
+    ],
+    "projectLead": "",
+    "teamMembers": [],
+    "liaisonDepartments": [],
+    "status": "pending",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-16T03:49:52.009Z",
+    "updatedAt": "2026-04-16T03:52:31.443Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "35",
+    "name": "汉盛律师费",
+    "description": "待梳理汉盛律师费未结算款项后，跟主席汇报。",
+    "departments": [
+      "legal"
+    ],
+    "projectLead": "黄靖",
+    "teamMembers": [
+      "黄靖"
+    ],
+    "liaisonDepartments": [],
+    "status": "pending",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-16T03:48:03.751Z",
+    "updatedAt": "2026-04-16T03:48:03.751Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "34",
+    "name": "腾讯云",
+    "description": "企业战略规划事项，看对方发过来的材料，约于炎鑫博士时间。",
+    "departments": [
+      "investment"
+    ],
+    "projectLead": "",
+    "teamMembers": [],
+    "liaisonDepartments": [],
+    "status": "pending",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-16T03:46:52.972Z",
+    "updatedAt": "2026-04-16T03:54:42.223Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "33",
+    "name": "星图金服",
+    "description": "股权转让协议星图金服已经盖章，持续催促对方完成工商股权变更。已交由华商诸律师跟进催促。\n\n【2026/04/16 03:45 更新】\n方案一：发函给股东，30日后自动确认放弃优先购买权\n进展：经了解，函件还未寄出，回复说还在沟通，希望能正面回复。\n方案二：由黄靖准备资料提起诉讼确权\n进展：黄靖已梳理资料，准备本周内递交起诉",
+    "departments": [
+      "investment"
+    ],
+    "projectLead": "刘晨",
+    "teamMembers": [
+      "刘晨"
+    ],
+    "liaisonDepartments": [
+      "法务部"
+    ],
+    "status": "in_progress",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-16T03:42:21.621Z",
+    "updatedAt": "2026-04-16T03:45:42.468Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "32",
+    "name": "驰名商标认定",
+    "description": "会见李劲松，谈商标认驰事宜，找公安部沟通了解怎样树立典型案件。",
+    "departments": [
+      "legal"
+    ],
+    "projectLead": "刘希",
+    "teamMembers": [
+      "刘希"
+    ],
+    "liaisonDepartments": [],
+    "status": "pending",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-16T03:30:09.187Z",
+    "updatedAt": "2026-04-16T03:30:09.187Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "31",
+    "name": "Raffel案（科文顿律所）",
+    "description": "Raffel美国案件委托科文顿所进行代理\n\n【2026/04/16 03:27 更新】\n1、关于和解金额，科文顿律师方面给出的折扣报价为75万美元。\n2、按主席要求，需请对方发送正式邮件予以确认。",
+    "departments": [
+      "legal"
+    ],
+    "projectLead": "刘希",
+    "teamMembers": [
+      "刘希"
+    ],
+    "liaisonDepartments": [],
+    "status": "in_progress",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-16T03:27:08.624Z",
+    "updatedAt": "2026-04-16T03:27:58.235Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "30",
+    "name": "华居平账",
+    "description": "敏华投资借出1.5亿港币，华居（香港）有限公司，居然之家从境内还回等值人民币约1.3亿人民币。沟通居然之家，怎么清两家财务账上的往来。",
+    "departments": [
+      "legal"
+    ],
+    "projectLead": "刘希",
+    "teamMembers": [
+      "刘希"
+    ],
+    "liaisonDepartments": [
+      "投资部"
+    ],
+    "status": "pending",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-16T03:20:42.199Z",
+    "updatedAt": "2026-04-16T03:55:08.233Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "29",
+    "name": "广众、公司律师",
+    "description": "广众：每5年发一次公告，秘书处反馈今年为第五年，会发公告，具体时间暂未明确。\n公司律所：市局已审批通过，待提交资料给市局，市局反馈给省厅。",
+    "departments": [
+      "legal"
+    ],
+    "projectLead": "刘希",
+    "teamMembers": [
+      "刘希"
+    ],
+    "liaisonDepartments": [],
+    "status": "pending",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-16T03:16:10.586Z",
+    "updatedAt": "2026-04-16T03:16:10.586Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "28",
+    "name": "李丹案",
+    "description": "联系北京恒都律所事务所批量解决执行案件，合同管理由星居主导，法务部审核。\n\n【2026/04/16 03:14 更新】\n陈总赴美后，交由刘希向老板汇报。",
+    "departments": [
+      "legal"
+    ],
+    "projectLead": "刘希",
+    "teamMembers": [
+      "刘希"
+    ],
+    "liaisonDepartments": [],
+    "status": "pending",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-16T03:13:13.923Z",
+    "updatedAt": "2026-04-16T03:14:04.466Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "27",
+    "name": "宜华案拒执罪",
+    "description": "进入广州中院沟通阶段，法务部协调汕头中院处案件关联关系证明。",
+    "departments": [
+      "legal"
+    ],
+    "projectLead": "刘希",
+    "teamMembers": [
+      "刘希"
+    ],
+    "liaisonDepartments": [],
+    "status": "in_progress",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-16T03:11:57.314Z",
+    "updatedAt": "2026-04-16T03:11:57.314Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "26",
+    "name": "私人资产查询",
+    "description": "CASE1宜华案：New Classic尚未过户，确认实控人关联关系。\nCASE2Daniel案：查找其配偶账户等资产线索。\n\n【2026/04/16 03:08 更新】\n同陈倩讨论企业债务穿透问题：探讨“横向人格混同”与“纵向人格混同”法律概念，研究如何通过企业违约追索个人资产。",
+    "departments": [
+      "investment"
+    ],
+    "projectLead": "谢佩琪",
+    "teamMembers": [
+      "谢佩琪"
+    ],
+    "liaisonDepartments": [
+      "法务部"
+    ],
+    "status": "in_progress",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-16T02:02:41.834Z",
+    "updatedAt": "2026-04-16T03:16:22.982Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "25",
+    "name": "Informa报告",
+    "description": "公司计划与印尼合作商Informa合资于印尼建立组装厂。\n\n【2026/04/16 02:28 更新】\n正在草拟计划书。\n等待印尼方提供更多信息以作更新。\n\n【2026/04/21 07:44 更新】\n1. KLG 给出了Proposal 相关文件（已整合进Informa合资建厂报告）等待确认具体细节，如：数据交换具体条目。\n",
+    "departments": [
+      "investment"
+    ],
+    "projectLead": "贾涵涛",
+    "teamMembers": [
+      "贾涵涛"
+    ],
+    "liaisonDepartments": [],
+    "status": "in_progress",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-16T01:59:54.556Z",
+    "updatedAt": "2026-04-21T07:44:03.196Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "24",
+    "name": "STORE租金事宜",
+    "description": "敏华2025年收购SMI后，发现其6处密西西比厂房租约存在租金偏高及递延债务递延至2038年的结构性负担，当前与出租方STORE的降租谈判因我方财务稳健反而缺乏筹码；团队正同步推进以现金支付优化租金结构、评估Chapter 11威胁可行性，并加速非核心资产出售，4月24日前将形成明确谈判方案。\n\n【2026/04/16 02:06 更新】\n1）已整理与Andy、Mike开会的会议纪要，并将英文版发给对方确认相应描述；\n2）跟进当地中介分析报告，整理问题清单，明确数据差异及核心参考指标，进行专业解读；\n3）让Andy协助回忆前期与STORE的谈判策略，并协助解读CMBS与市场分析报告；\n4）联系当地中介机构，核实当地商业地产市场真实行情，确认New Albany厂房的价格区间；\n5）结合美国国债行情及Blue Owl的变动，并联系Citi、JPM等寻求美国当地房产研究报告。\n\n【2026/04/21 06:48 更新】\n1. 同will和tony就store报告进行优化；\n2. Engage with Hilco Global：\n      1）Andy 签署NDA。\n      2）等待Hilco给出报价以及方案。\n",
+    "departments": [
+      "investment"
+    ],
+    "projectLead": "刘海涛",
+    "teamMembers": [
+      "刘海涛",
+      "贾涵涛"
+    ],
+    "liaisonDepartments": [],
+    "status": "in_progress",
+    "currentUpdate": "",
+    "tripInfo": {
+      "isTrip": true,
+      "airline": "",
+      "alliance": "",
+      "tripDate": "",
+      "transport": "plane",
+      "cabinClass": "",
+      "driverName": "",
+      "arrivalTime": "",
+      "destination": "",
+      "driverPhone": "",
+      "trainNumber": "",
+      "flightNumber": "",
+      "memberNumber": "",
+      "departureTime": "",
+      "eTicketNumber": "",
+      "pickupAddress": "",
+      "arrivalAirport": "",
+      "arrivalStation": "",
+      "trainCabinClass": "",
+      "departureAirport": "",
+      "departureStation": "",
+      "companyCarToStation": false
+    },
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-16T01:45:25.454Z",
+    "updatedAt": "2026-04-21T07:42:23.227Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "23",
+    "name": "Kimi项目",
+    "description": "敏华于2026年4月通过坚果资本作为财务顾问，以1000万美元投资中国头部大模型公司月之暗面（Kimi）E轮，资金进入其境外红筹架构主体，布局生成式AI赛道。\n\n【2026/04/16 02:24 更新】\n1.相关投资文件已签署。\n2.跟进付款程序，预计本周完成付款。\n\n【2026/04/21 07:32 更新】\n1、2026年4月17日已出款1000万美金\n2、待收到双方签字的财务顾问协议后支付30万美金财顾费\n3、投后管理",
+    "departments": [
+      "family_office"
+    ],
+    "projectLead": "刘海涛",
+    "teamMembers": [
+      "刘海涛",
+      "贾涵涛"
+    ],
+    "liaisonDepartments": [
+      "投资部"
+    ],
+    "status": "in_progress",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-16T01:43:13.109Z",
+    "updatedAt": "2026-04-21T07:32:33.009Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "22",
+    "name": "孙红娣",
+    "description": "主席与孙红娣签署2300万借款合同，于23年已到期，近期与对方取得联系，对方无还款打算，对方表示7月联系。",
+    "departments": [
+      "investment"
+    ],
+    "projectLead": "苏丽玲",
+    "teamMembers": [
+      "苏丽玲"
+    ],
+    "liaisonDepartments": [
+      "法务部"
+    ],
+    "status": "in_progress",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-09T09:44:14.905Z",
+    "updatedAt": "2026-04-16T03:21:21.135Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "21",
+    "name": "华夏基金1000万美金处置事宜",
+    "description": "敏华投资有限公司于2015年2月13日出资1,000万美金通过华夏基金香港子公司间接参与中石化销售公司的股权投资，持有股权比例为0.016926%。目前正在与华夏基金协商将此份额转让到敏华黄氏家族投资有限公司，并同步找买家来接手此份额。\n\n【2026/04/16 03:19 更新】\n已经联系华夏基金香港，准备将投资份额从敏华投资转至敏华黄氏家族投资有限公司，同时继续跟进股东上翻或折价出售事宜。",
+    "departments": [
+      "family_office"
+    ],
+    "projectLead": "刘海涛",
+    "teamMembers": [
+      "刘海涛"
+    ],
+    "liaisonDepartments": [],
+    "status": "in_progress",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-09T09:36:40.663Z",
+    "updatedAt": "2026-04-16T03:19:23.640Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "20",
+    "name": "硅谷考察",
+    "description": "邀请人：Chris Shen\n旧金山当地时间：2026年4月17日（周五）13:00-14:00\n会议地点：Bluestone Lane SOMA Coffee Shop, 55 2nd St, San Francisco, CA 94105, USA\n\n\n",
+    "departments": [
+      "ir"
+    ],
+    "projectLead": "",
+    "teamMembers": [],
+    "liaisonDepartments": [],
+    "status": "completed",
+    "currentUpdate": "",
+    "tripInfo": {
+      "isTrip": true,
+      "airline": "",
+      "alliance": "",
+      "tripDate": "2026-04-17",
+      "transport": "self_drive",
+      "cabinClass": "",
+      "driverName": "",
+      "arrivalTime": "",
+      "destination": "旧金山",
+      "driverPhone": "",
+      "trainNumber": "",
+      "flightNumber": "",
+      "memberNumber": "",
+      "departureTime": "",
+      "eTicketNumber": "",
+      "pickupAddress": "",
+      "arrivalAirport": "",
+      "arrivalStation": "",
+      "trainCabinClass": "",
+      "departureAirport": "",
+      "departureStation": "",
+      "companyCarToStation": false
+    },
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-09T02:18:05.548Z",
+    "updatedAt": "2026-04-21T07:01:11.929Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "19",
+    "name": "徐州项目",
+    "description": "2021年4月香港星泰有限公司向敏华投资有限公司借款6亿港币，年利率10%，对方一直未如期还款，与车建兴控股的国内红星美凯龙集团及其子公司签署一系列还款及担保协议，以取得慈溪凯胜所持有徐州茂星公司60%股权，获得徐州爱琴海商场所有权。\n\n【2026/04/09 01:46 更新】\n1. 红星已起诉，已撤销保全。\n2. 前往上海会见徐国峰，继续完成与物抵债协议的补充协议。\n\n【2026/04/13 08:20 更新】\n3. 主席已把我拟的函件直接发给了车建新。\n\n\n【2026/04/16 01:50 更新】\n项目负责人今日前往上海约见艺嘉智慧科技公司老板徐劲松，商谈茂星、江苏省二建、艺嘉及车建新之间的债权债务化解问题。",
+    "departments": [
+      "family_office"
+    ],
+    "projectLead": "刘海涛",
+    "teamMembers": [
+      "刘海涛"
+    ],
+    "liaisonDepartments": [
+      "法务部",
+      "投资部"
+    ],
+    "status": "pending",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-09T01:44:52.311Z",
+    "updatedAt": "2026-04-16T06:15:54.474Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "18",
+    "name": "私募基金设立",
+    "description": "同鲍雁辛在香港设立私募基金公司。",
+    "departments": [
+      "family_office"
+    ],
+    "projectLead": "刘海涛",
+    "teamMembers": [
+      "刘海涛"
+    ],
+    "liaisonDepartments": [],
+    "status": "in_progress",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-09T01:41:03.883Z",
+    "updatedAt": "2026-04-09T01:41:03.883Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "17",
+    "name": "anthropic股权项目",
+    "description": "ai方面股权投资\n\n【2026/04/09 01:39 更新】\n1. 追加至1500万美金投资，其中750万投资Green Bay项目，750万用于配售其他相应份额。\n2. 董事会决议需重新签署，需签署补充booklet，安排新的资金支付计划。\n\n【2026/04/09 09:38 更新】\n4.9已签署booklet。\n待正式交割完7个工作日将会退回250万美金。\n配售基金4月内明确不会call款，7月底前不会call超过50%。\n\n【2026/04/16 03:22 更新】\n1、追加至1500万美金投资，其中750万投资GREEN BAY 项目，750万用于配售其他相应份额；\n2、新的附配售条件的董事会决议已签署，并已修改认购文件的承诺认购金额及补充风险条款等，确认新的完整版认购文件，待等通知将原版纸质认购文件寄出并获取认购份额确认函;\n3、预计4月16/17日将250万美元认购款退回给我司。\n4、继续跟进配售部分的认购进展。\n\n【2026/04/21 07:36 更新】\n1、2026年4月16日250万美元多余认购款已退回并入账\n2、目前Anthropic估值溢价很高，询问老板是否要将部分套现，至少先把本金部分套现回流。\n3、配售金额的交易结构预计1个月后搭建好并出款",
+    "departments": [
+      "family_office"
+    ],
+    "projectLead": "苏丽玲",
+    "teamMembers": [
+      "苏丽玲"
+    ],
+    "liaisonDepartments": [
+      "家族办公室"
+    ],
+    "status": "in_progress",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-09T01:37:14.480Z",
+    "updatedAt": "2026-04-21T07:36:36.632Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "16",
+    "name": "宝轩酒店",
+    "description": "通过显骏实业在香港地区持有宝轩酒店物业改造用于运营学生公寓出租。\n\n【2026/04/09 01:35 更新】\n4.8与汉国完成酒店交接，进入装修阶段，后续需跟进理工大学招生等经营情况。",
+    "departments": [
+      "investment"
+    ],
+    "projectLead": "杨智鑫",
+    "teamMembers": [
+      "杨智鑫",
+      "苏丽玲"
+    ],
+    "liaisonDepartments": [],
+    "status": "in_progress",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-09T01:34:28.643Z",
+    "updatedAt": "2026-04-16T06:02:14.974Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "15",
+    "name": "WW Global Capital",
+    "description": "敏华家办与南旋集团于2015年合伙成立了W&W基金，主要投资于二级市场股票及PE项目。经过约10年的投资周期，基金进入清算阶段。\n\n【2026/04/16 02:19 更新】\n1、拟清算4个项目，包括名医主刀、春雨医生、百融金服、Media.net，待老板审批后准备董事会决议。\n2、拟报价转让4个项目，包括格隆汇、ZhenFund、Oppt Inv Basket和Refa，待老板审批后准备给对方报价函\n3、继续跟进剩余项目，包括Space X、LP Fund、Catalyte以及养老院项目。",
+    "departments": [
+      "family_office"
+    ],
+    "projectLead": "刘海涛",
+    "teamMembers": [
+      "刘海涛"
+    ],
+    "liaisonDepartments": [],
+    "status": "in_progress",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-08T11:50:08.556Z",
+    "updatedAt": "2026-04-16T02:19:23.491Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "14",
+    "name": "花旗银行开户",
+    "description": "对接江楚行，确认city bank注册。\n\n【2026/04/13 00:29 更新】\n户已开启",
+    "departments": [
+      "family_office"
+    ],
+    "projectLead": "苏丽玲",
+    "teamMembers": [
+      "苏丽玲"
+    ],
+    "liaisonDepartments": [],
+    "status": "in_progress",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-08T11:45:21.574Z",
+    "updatedAt": "2026-04-16T03:53:53.169Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "13",
+    "name": "吴江希尔顿",
+    "description": "敏华合作的希尔顿酒店已完成摘牌，新引入合作品牌元开酒店。\n\n\n【2026/04/09 01:30 更新】\n跟元开沟通协调签署补充协议及法人对法人的担保承诺。\n\n【2026/04/16 01:58 更新】\n与刘希沟通，开始筛选并委任外部律师事务所处理希尔顿酒店强制拆除引发的诉讼。",
+    "departments": [
+      "legal"
+    ],
+    "projectLead": "刘希",
+    "teamMembers": [
+      "刘希"
+    ],
+    "liaisonDepartments": [],
+    "status": "in_progress",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-08T10:58:01.438Z",
+    "updatedAt": "2026-04-16T01:58:01.985Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "11",
+    "name": "美国工厂项目",
+    "description": "完成收购了一家位于密西西比州的本土老牌家具制造工厂。\n处理后续事宜。\n\n【2026/04/09 01:29 更新】\n1. Vic已确定6月6日入职。\n2. A&L律所报价单还没给过来，法务部暂未安排支付费用。",
+    "departments": [
+      "investment"
+    ],
+    "projectLead": "苏丽玲",
+    "teamMembers": [
+      "苏丽玲"
+    ],
+    "liaisonDepartments": [
+      "投资部",
+      "法务部"
+    ],
+    "status": "in_progress",
+    "currentUpdate": "",
+    "tripInfo": {
+      "isTrip": true,
+      "airline": "",
+      "alliance": "",
+      "tripDate": "2026-04-26",
+      "transport": "plane",
+      "cabinClass": "first",
+      "driverName": "",
+      "arrivalTime": "2026-04-26T15:28",
+      "destination": "美国",
+      "driverPhone": "",
+      "trainNumber": "",
+      "flightNumber": "UA3650",
+      "memberNumber": "",
+      "departureTime": "2026-04-26T13:30",
+      "eTicketNumber": "016-7475959992",
+      "pickupAddress": "",
+      "arrivalAirport": "孟菲斯国际机场",
+      "arrivalStation": "",
+      "trainCabinClass": "",
+      "departureAirport": "纽瓦克国际机场C",
+      "departureStation": "",
+      "companyCarToStation": false
+    },
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-08T10:55:42.886Z",
+    "updatedAt": "2026-04-21T17:46:37.187Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "10",
+    "name": "墨西哥法律案件",
+    "description": "墨西哥工厂厂房地陷等系列法律纠纷\n\n【2026/04/09 00:27 更新】\n重新梳理墨西哥案件资料，了解案件进展，制作PFK后汇报老板。\n\n【2026/04/16 03:04 更新】\n案件进度已汇报老板，4.19同刘希前往墨西哥工厂\n\n【2026/04/21 07:58 更新】\n1. 会见律师，讨论案件策略；\n2. 会见法官，讨论案件处理程序；\n3. 找西班牙中文双语律师跟进本案，提高沟通效率。",
+    "departments": [
+      "legal"
+    ],
+    "projectLead": "刘希",
+    "teamMembers": [
+      "刘希",
+      "陈倩"
+    ],
+    "liaisonDepartments": [],
+    "status": "pending",
+    "currentUpdate": "",
+    "tripInfo": {
+      "isTrip": true,
+      "airline": "",
+      "alliance": "",
+      "tripDate": "2026-04-19",
+      "transport": "plane",
+      "cabinClass": "business",
+      "driverName": "",
+      "arrivalTime": "2026-04-19T15:39",
+      "destination": "蒙特雷",
+      "driverPhone": "",
+      "trainNumber": "",
+      "flightNumber": "UA6001",
+      "memberNumber": "",
+      "departureTime": "2026-04-19T10:45",
+      "eTicketNumber": "016-9547108079",
+      "pickupAddress": "",
+      "arrivalAirport": "蒙特雷国际机场A",
+      "arrivalStation": "",
+      "trainCabinClass": "",
+      "departureAirport": "旧金山国际机场",
+      "departureStation": "",
+      "companyCarToStation": false
+    },
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-08T10:49:47.013Z",
+    "updatedAt": "2026-04-21T07:58:42.084Z",
+    "visibleToChairman": true
+  },
+  {
+    "id": "7",
+    "name": "西安中铁案",
+    "description": "西安建设项目跟中铁集团合同纠纷\n\n【2026/04/09 00:26 更新】\n1. 律师修正委托代理合同的付款条款\n2. 律所协调跟鉴定机构见面\n3. 律师团队的合伙人出面跟老板汇报，并更新违约金计算方式\n\n【2026/04/16 02:01 更新】\n1. 律师已修正委托代理合同付款条款，待我方修正。\n2. 律所已更新违约金计算方式。",
+    "departments": [
+      "legal"
+    ],
+    "projectLead": "刘希",
+    "teamMembers": [
+      "刘希"
+    ],
+    "liaisonDepartments": [],
+    "status": "in_progress",
+    "currentUpdate": "",
+    "tripInfo": null,
+    "meetingInfo": null,
+    "sortOrder": 0,
+    "deletedAt": null,
+    "createdAt": "2026-04-08T10:45:04.017Z",
+    "updatedAt": "2026-04-16T02:01:17.192Z",
+    "visibleToChairman": true
+  }
+]

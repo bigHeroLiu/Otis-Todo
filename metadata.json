@@ -1,5 +1,5 @@
 {
   "name": "Otis To-Do Dashboard",
-  "description": "A task management dashboard with AI assistant, Firebase integration, and travel time estimation.",
-  "requestFramePermissions": ["geolocation"]
+  "description": "A task management dashboard with AI assistant.",
+  "requestFramePermissions": []
 }
