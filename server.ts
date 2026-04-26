@@ -14,14 +14,47 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
-// Set up OpenAI compatible generic client. Can point to Ollama, LM Studio, etc. via OPENAI_BASE_URL
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || 'dummy_key',
-  baseURL: process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1',
-});
+const ROUTERHUB_API_KEY = "sk-rh-v1-Wcc3zkhVOgRlPyCScSfWFRx2pUYGHmLfmpkfBFhxKaU";
 
-// Configure the model name used locally or from open AI
-const LLM_MODEL = process.env.LLM_MODEL || 'gpt-4o-mini';
+async function callGemini(systemPrompt: string, userPrompt: string, jsonMode = false) {
+  const url = 'https://api.routerhub.ai/v1beta/models/gemini-2.5-pro:generateContent';
+  
+  const body: any = {
+    contents: [
+      { role: "user", parts: [{ text: userPrompt }] }
+    ]
+  };
+
+  if (systemPrompt) {
+    body.systemInstruction = {
+      role: "system",
+      parts: [{ text: systemPrompt }]
+    };
+  }
+
+  if (jsonMode) {
+    body.generationConfig = {
+      responseMimeType: "application/json"
+    };
+  }
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${ROUTERHUB_API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(body)
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`RouterHub API error: ${response.status} ${errorText}`);
+  }
+
+  const data = await response.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+}
 
 // Initialize SQLite database
 const db = new Database('database.sqlite');
@@ -273,16 +306,15 @@ app.post('/api/ai/extract-task', async (req, res) => {
   请确保输出是纯 JSON，不要带 markdown 代码块。`;
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: LLM_MODEL,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: input }
-      ],
-      response_format: { type: 'json_object' }
-    });
-
-    const data = JSON.parse(completion.choices[0].message.content || "{}");
+    const jsonStr = await callGemini(systemPrompt, input, true);
+    let data;
+    try {
+      data = JSON.parse(jsonStr || "{}");
+    } catch(e) {
+      // In case the model returns markdown code block, trim it
+      const cleanJson = jsonStr.replace(/^```(json)?/, '').replace(/```$/, '').trim();
+      data = JSON.parse(cleanJson || "{}");
+    }
     
     // Ensure transport is valid enum
     if (data.tripInfo && data.tripInfo.transport) {
@@ -309,14 +341,9 @@ app.post('/api/ai/estimate-travel', async (req, res) => {
   请用一句话简明扼要地总结行程时间预估（例如：“飞行时间约2小时15分钟，从机场到市中心预计需要45分钟。”）。`;
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: LLM_MODEL,
-      messages: [
-        { role: 'user', content: prompt }
-      ],
-    });
+    const text = await callGemini('', prompt, false);
 
-    res.json({ text: completion.choices[0].message.content });
+    res.json({ text });
   } catch (e) {
     console.error("AI Estimation failed", e);
     res.status(500).json({ error: 'AI processing failed' });
@@ -332,14 +359,9 @@ app.post('/api/ai/summarize-task', async (req, res) => {
   出差信息：${task?.tripInfo ? JSON.stringify(task.tripInfo) : '无'}`;
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: LLM_MODEL,
-      messages: [
-        { role: 'user', content: prompt }
-      ],
-    });
+    const text = await callGemini('', prompt, false);
 
-    res.json({ text: completion.choices[0].message.content });
+    res.json({ text });
   } catch (e) {
     console.error("AI Summarization failed", e);
     res.status(500).json({ error: 'AI processing failed' });
