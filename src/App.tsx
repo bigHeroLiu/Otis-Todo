@@ -793,6 +793,10 @@ export default function App() {
         isOpen={isMissionListOpen}
         onClose={() => setIsMissionListOpen(false)}
         tasks={tasks}
+        onTaskClick={(task: Task) => {
+          setIsMissionListOpen(false);
+          setSelectedTask(task);
+        }}
       />
 
       {userRole === 'otis' && (

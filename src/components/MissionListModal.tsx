@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
-import { Printer } from 'lucide-react';
+import { Printer, CalendarDays, ListTodo } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '../lib/utils';
 import { DEPARTMENTS } from '../App';
 
-export function MissionListModal({ isOpen, onClose, tasks }: any) {
+export function MissionListModal({ isOpen, onClose, tasks, onTaskClick }: any) {
+  const [activeTab, setActiveTab] = useState<'tasks' | 'meetings'>('tasks');
+
   const inProgressTasks = tasks
     .filter((t: any) => t.status === 'in_progress')
     .sort((a: any, b: any) => {
@@ -14,6 +16,10 @@ export function MissionListModal({ isOpen, onClose, tasks }: any) {
       if (orderDiff !== 0) return orderDiff;
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
+
+  const displayedTasks = inProgressTasks.filter((t: any) => 
+    activeTab === 'meetings' ? !!t.meetingInfo : !t.meetingInfo
+  );
 
   const handlePrint = () => {
     window.print();
@@ -32,23 +38,53 @@ export function MissionListModal({ isOpen, onClose, tasks }: any) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[92dvh] overflow-y-auto print:max-w-none print:h-auto print:overflow-visible bg-[#f8fafc]">
         <DialogHeader className="print:hidden flex flex-row items-center justify-between pb-4 border-b border-slate-200/60">
-          <DialogTitle className="text-2xl font-serif font-bold text-slate-900">Mission List</DialogTitle>
-          <button onClick={handlePrint} className="p-2 text-slate-500 hover:text-[#1abc9c] hover:bg-slate-100 rounded-lg transition-colors">
+          <div className="flex flex-col gap-3">
+            <DialogTitle className="text-2xl font-serif font-bold text-slate-900">Mission List</DialogTitle>
+            <div className="flex items-center gap-2 bg-slate-100/80 p-1 rounded-xl w-fit">
+              <button
+                onClick={() => setActiveTab('tasks')}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all",
+                  activeTab === 'tasks' 
+                    ? "bg-white text-[#1abc9c] shadow-sm ring-1 ring-slate-200" 
+                    : "text-slate-500 hover:text-slate-700"
+                )}
+              >
+                <ListTodo className="w-4 h-4" />常规任务
+              </button>
+              <button
+                onClick={() => setActiveTab('meetings')}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all",
+                  activeTab === 'meetings' 
+                    ? "bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200" 
+                    : "text-slate-500 hover:text-slate-700"
+                )}
+              >
+                <CalendarDays className="w-4 h-4" />会见安排
+              </button>
+            </div>
+          </div>
+          <button onClick={handlePrint} className="p-2 text-slate-500 hover:text-[#1abc9c] hover:bg-slate-100 rounded-lg transition-colors self-start">
             <Printer className="w-5 h-5" />
           </button>
         </DialogHeader>
         
         <div className="mt-6 space-y-8 print:mt-0">
           <div className="hidden print:block text-center mb-8">
-            <h1 className="text-3xl font-serif font-bold">Mission List</h1>
+            <h1 className="text-3xl font-serif font-bold">Mission List - {activeTab === 'tasks' ? '常规任务' : '会见安排'}</h1>
             <p className="text-slate-500 mt-2">{new Date().toLocaleDateString('zh-CN')}</p>
           </div>
 
-          {inProgressTasks.map((task: any) => {
+          {displayedTasks.map((task: any) => {
             const primaryDeptKey = task.departments?.[0];
             const config = getDeptConfig(primaryDeptKey || 'personal');
             return (
-              <div key={task.id} className="grid grid-cols-12 gap-4 px-6 py-4 items-center bg-white border border-slate-200 rounded-xl hover:shadow-sm transition-shadow">
+              <div 
+                key={task.id} 
+                onClick={() => onTaskClick?.(task)}
+                className="grid grid-cols-12 gap-4 px-6 py-4 items-center bg-white border border-slate-200 rounded-xl hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer cursor-action"
+              >
                 <div className="col-span-2 text-sm text-slate-500 font-mono">
                   {format(new Date(task.createdAt), 'MM/dd HH:mm')}
                 </div>
@@ -98,9 +134,9 @@ export function MissionListModal({ isOpen, onClose, tasks }: any) {
               </div>
             );
           })}
-          {inProgressTasks.length === 0 && (
+          {displayedTasks.length === 0 && (
             <div className="text-center text-slate-500 py-10 bg-white rounded-xl border border-slate-200 border-dashed">
-              当前没有进行中的任务
+              当前没有进行中的{activeTab === 'tasks' ? '常规任务' : '会见安排'}
             </div>
           )}
         </div>
