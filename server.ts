@@ -133,16 +133,43 @@ app.get('/api/tasks', (req, res) => {
   }
   const rows = stmt.all();
   // Decode JSON
-  const tasks = rows.map((row: any) => ({
-    ...row,
-    departments: JSON.parse(row.departments || '[]'),
-    teamMembers: JSON.parse(row.teamMembers || '[]'),
-    liaisonDepartments: JSON.parse(row.liaisonDepartments || '[]'),
-    tripInfo: row.tripInfo ? JSON.parse(row.tripInfo) : null,
-    meetingInfo: row.meetingInfo ? JSON.parse(row.meetingInfo) : null,
-    visibleToChairman: !!row.visibleToChairman
-  }));
-  res.json(tasks);
+  try {
+    const tasks = rows.map((row: any) => {
+      const getParsed = (str: any) => {
+        if (!str) return [];
+        try {
+          return JSON.parse(str);
+        } catch (e) {
+          console.error("Failed to parse JSON string:", str, typeof str);
+          return [];
+        }
+      };
+      
+      const getParsedObj = (str: any) => {
+        if (!str) return null;
+        try {
+          return JSON.parse(str);
+        } catch (e) {
+          console.error("Failed to parse JSON object:", str, typeof str);
+          return null;
+        }
+      };
+
+      return {
+        ...row,
+        departments: getParsed(row.departments),
+        teamMembers: getParsed(row.teamMembers),
+        liaisonDepartments: getParsed(row.liaisonDepartments),
+        tripInfo: getParsedObj(row.tripInfo),
+        meetingInfo: getParsedObj(row.meetingInfo),
+        visibleToChairman: !!row.visibleToChairman
+      };
+    });
+    res.json(tasks);
+  } catch (err) {
+    console.error("Error processing tasks:", err);
+    res.status(500).json({ error: 'Failed to parse tasks' });
+  }
 });
 
 app.post('/api/tasks', (req, res) => {
@@ -275,35 +302,78 @@ app.delete('/api/depts/:id', (req, res) => {
 
 app.post('/api/ai/extract-task', async (req, res) => {
   const { input, userLocation } = req.body;
-  const systemPrompt = `你是一个高效的行政助手。你的任务是从用户的口语化描述中提取待办事项信息，并以 JSON 格式返回。
-      
-  返回的 JSON 结构如下：
+  
+  // Extract context from DB for better AI matching
+  const membersStmt = db.prepare('SELECT id, name, department FROM members');
+  const members = membersStmt.all();
+  
+  const deptsStmt = db.prepare('SELECT id, name FROM liaison_departments');
+  const depts = deptsStmt.all();
+  
+  const tasksStmt = db.prepare('SELECT id, name, status, projectLead FROM tasks WHERE deletedAt IS NULL');
+  const tasks = tasksStmt.all();
+
+  const contextData = JSON.stringify({
+    currentMembers: members,
+    currentDepartments: depts,
+    currentTasks: tasks
+  });
+
+  const systemPrompt = `你是一个智能、高级的系统级 AI 侧边栏助理。你的任务是理解用户的自然语言输入，并根据意图自动采取行动（新增待办、更新待办、新增员工、更新员工等）。
+  你可以查阅以下当前系统上下文，以便更准确地匹配人员或任务：
+  ${contextData}
+
+  你需要返回一个带有执行意图的 JSON：
   {
-    "name": "任务简短标题",
-    "description": "任务详细描述",
-    "projectLead": "负责人姓名（如果提到，否则留空）",
-    "departments": ["所属部门关键字，可选值：legal, investment, audit, family_office, ir, personal"],
-    "status": "pending",
-    "tripInfo": {
-      "destination": "目的地",
-      "dates": "出差日期（如：4月15日）",
-      "transport": "交通方式，必须从以下选项中严格选择一个：飞机、高铁、公司司机、自驾、其他",
-      "needsDriver": true 或 false (如果描述中提到需要司机、接送等，设为 true),
-      "driverName": "司机姓名（如果提到）",
-      "driverPickupLocation": "司机在哪里接（如果提到，例如：机场T3航站楼、公司楼下等）",
-      "driverPhone": "司机手机号（如果提到，例如：13812345678）",
-      "flightNo": "航班号（如果提到航班信息，如 MU5101）",
-      "flightTime": "起降时间与机场（如果提到相关信息）",
-      "estimatedTravelTime": "行程时间预估"
+    "intent": "CREATE_TASK" | "UPDATE_TASK" | "CREATE_MEMBER" | "UPDATE_MEMBER" | "CREATE_DEPT" | "UNKNOWN",
+    "message": "给用户的回复信息（用第一人称，语气专业、礼貌。如果是新增或更新操作，可以概括一下你打算执行的内容，询问用户是否确认执行。提示词需足够友好智能。）",
+    
+    // 如果意图是 CREATE_TASK 或 UPDATE_TASK：
+    "taskData": {
+      "id": "如果是 UPDATE_TASK，这里填匹配到的任务id",
+      "name": "任务标题/事项简述",
+      "description": "详细说明",
+      "projectLead": "负责人的 id（优先使用上下文里的id，如果你能匹配到名字的话）或名字",
+      "departments": ["Legal", "Investment", "Audit", "Family_Office", "IR", "Personal", "Other"],
+      "status": "pending",
+      "tripInfo": {
+        "destination": "目的地",
+        "dates": "出差日期",
+        "transport": "飞机 / 高铁 / 公司司机 / 自驾 / 其他",
+        "needsDriver": true/false,
+        "driverName": "司机姓名",
+        "driverPickupLocation": "接车地点",
+        "driverPhone": "司机电话",
+        "flightNo": "航班号",
+        "flightTime": "航班时间"
+      }
+    },
+    
+    // 如果意图是 CREATE_MEMBER 或 UPDATE_MEMBER：
+    "memberData": {
+      "id": "如果是 UPDATE_MEMBER，这里填匹配到的成员id",
+      "name": "员工姓名",
+      "department": "所属部门",
+      "profile": { // 这个字段是可选的
+        "position": "职位",
+        "phone": "电话",
+        "email": "邮箱"
+      }
+    },
+
+    // 如果意图是 CREATE_DEPT：
+    "deptData": {
+      "name": "部门名称"
     }
   }
-  
-  重要提示：
-  1. 请务必仔细提取“司机手机号”(driverPhone) 和“接车地点”(driverPickupLocation)。
-  2. 如果用户提供了出差行程，请预估行程时间并填入 estimatedTravelTime 字段。
-  3. 当前日期是：${new Date().toLocaleDateString()}
-  
-  请确保输出是纯 JSON，不要带 markdown 代码块。`;
+
+  注意：
+  1. 当前日期是：${new Date().toLocaleDateString()}
+  2. 请一定务必仔细理解用户的意图，如果用户说“张三换了手机号”，说明是 UPDATE_MEMBER。如果用户说“安排王五跟进报销流程”，可能是 CREATE_TASK 或者 UPDATE_TASK（如果已有报销任务）。
+  3. departments 的可选值尽量从系统预设的 keys (Legal 对应 法务部, Investment 对应 投资中心, Audit 对应 审计监察部, Family_Office 对应 家族办公室, IR 对应 投资者关系, Personal 对应 个人事务) 中猜一个。如果无法匹配，就填 "Other"。
+  4. 如果是更新任务，只填用户提到需要改的字段到 taskData 里即可。
+  5. 必须返回合法的 JSON，不要套 markdown。
+  `;
 
   try {
     const jsonStr = await callGemini(systemPrompt, input, true);
@@ -311,17 +381,8 @@ app.post('/api/ai/extract-task', async (req, res) => {
     try {
       data = JSON.parse(jsonStr || "{}");
     } catch(e) {
-      // In case the model returns markdown code block, trim it
       const cleanJson = jsonStr.replace(/^```(json)?/, '').replace(/```$/, '').trim();
       data = JSON.parse(cleanJson || "{}");
-    }
-    
-    // Ensure transport is valid enum
-    if (data.tripInfo && data.tripInfo.transport) {
-      const validTransports = ["飞机", "高铁", "公司司机", "自驾", "其他"];
-      if (!validTransports.includes(data.tripInfo.transport)) {
-        data.tripInfo.transport = "其他";
-      }
     }
     
     res.json(data);

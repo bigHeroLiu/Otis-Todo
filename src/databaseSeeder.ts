@@ -74,10 +74,10 @@ export function seedDatabaseIfEmpty(db: Database.Database) {
           task.currentUpdate,
           task.tripInfo ? JSON.stringify(task.tripInfo) : null,
           task.meetingInfo ? JSON.stringify(task.meetingInfo) : null,
-          task.deletedAt,
-          task.visibleToChairman ?? 1,
-          task.createdAt,
-          task.updatedAt
+          task.deletedAt || null,
+          (task.visibleToChairman !== false) ? 1 : 0,
+          task.createdAt || null,
+          task.updatedAt || null
         );
       }
     })();

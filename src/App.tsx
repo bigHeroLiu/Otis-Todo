@@ -796,10 +796,7 @@ export default function App() {
       />
 
       {userRole === 'otis' && (
-        <ChatAI onAddTask={async (taskData) => {
-          setEditingTask(taskData);
-          setIsTaskModalOpen(true);
-        }} />
+        <ChatAI onActionComplete={loadData} />
       )}
     </div>
   );
