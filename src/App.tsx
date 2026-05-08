@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { format, differenceInYears, differenceInMonths, differenceInDays, parse, addDays, isSameDay } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
-import { Plus, Users, Printer, Menu, X, ChevronRight, Trash2, Briefcase, Plane, Train, Car, RotateCcw, Cake, GripVertical } from 'lucide-react';
+import { Plus, Users, Printer, Menu, X, ChevronRight, Trash2, Briefcase, Plane, Train, Car, RotateCcw, Cake, GripVertical, Sparkles } from 'lucide-react';
 import { cn } from './lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast, Toaster } from 'sonner';
@@ -847,6 +847,14 @@ function TaskCard({ task, onClick, isTrash, onRestore, onPermanentDelete, canEdi
   // Resolve member info for project lead
   const leadMember = members.find(m => m.id === task.projectLead || m.name === task.projectLead);
   const leadName = leadMember ? leadMember.name : task.projectLead;
+
+  // Resolve team members info
+  const teamMemNames = (task.teamMembers || [])
+    .map((idOrName: string) => {
+      const m = members.find(m => m.id === idOrName || m.name === idOrName);
+      return m ? m.name : idOrName;
+    })
+    .filter((name: string) => name && name !== leadName);
   
   return (
     <motion.div 
@@ -857,23 +865,20 @@ function TaskCard({ task, onClick, isTrash, onRestore, onPermanentDelete, canEdi
       transition={{ type: "spring", damping: 25, stiffness: 300 }}
       onClick={onClick}
       className={cn(
-        "bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col relative h-full group",
-        !isTrash && "cursor-pointer",
-        isDragging && "shadow-2xl cursor-grabbing scale-[1.02] z-50 ring-2 ring-[#1abc9c]/20"
+        "bg-white/80 backdrop-blur-md rounded-[24px] border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] transition-all duration-500 overflow-hidden flex flex-col relative h-full group",
+        !isTrash && "cursor-pointer hover:-translate-y-1",
+        isDragging && "shadow-2xl cursor-grabbing scale-[1.05] z-50 ring-2 ring-[#1abc9c]/50"
       )}
     >
-      {/* Accent Header */}
-      <div className={cn("h-1 w-full shrink-0", primaryDept ? primaryDept.bg.replace('50', '500') : "bg-slate-200")} />
-      
       {/* Drag & Chairman Tools */}
       <div className={cn(
-        "absolute top-2 right-2 flex items-center gap-1 transition-opacity duration-200 z-10",
+        "absolute top-3 right-3 flex items-center gap-1.5 transition-opacity duration-300 z-10",
         task.visibleToChairman ? "opacity-100" : "opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
       )}>
         {canEdit && !isTrash && (
           <div 
             {...dndProps}
-            className="p-1.5 rounded-lg bg-white/90 backdrop-blur shadow-sm border border-slate-100 text-slate-400 hover:text-[#1abc9c] cursor-grab active:cursor-grabbing transition-colors"
+            className="p-1.5 rounded-xl bg-white/50 backdrop-blur-md shadow-sm border border-slate-100 text-slate-400 hover:text-[#1abc9c] hover:bg-white cursor-grab active:cursor-grabbing transition-all"
             onClick={e => e.stopPropagation()}
           >
             <GripVertical className="w-4 h-4" />
@@ -884,41 +889,41 @@ function TaskCard({ task, onClick, isTrash, onRestore, onPermanentDelete, canEdi
           <button
             onClick={onToggleChairman}
             className={cn(
-              "p-1.5 rounded-lg backdrop-blur shadow-sm border transition-all flex items-center gap-1",
+              "p-1.5 rounded-xl backdrop-blur-md shadow-sm border transition-all flex items-center justify-center",
               task.visibleToChairman 
-                ? "bg-amber-500 text-white border-amber-600" 
-                : "bg-white/90 text-slate-300 border-slate-100 hover:text-amber-500"
+                ? "bg-amber-500 text-white border-amber-600 shadow-amber-500/20" 
+                : "bg-white/50 text-slate-400 border-slate-100 hover:text-amber-500 hover:bg-white"
             )}
             title={task.visibleToChairman ? "主席可见" : "设为主席可见"}
           >
-            <span className="text-[9px] font-bold px-0.5">主席</span>
+            <span className="text-[10px] font-bold px-1 tracking-widest">主席</span>
           </button>
         )}
       </div>
 
-      <div className="p-5 flex flex-col flex-1">
+      <div className="p-6 flex flex-col flex-1 pt-8">
         {/* Title Section */}
-        <div className="min-h-[3.5rem] mb-3">
-          <div className="flex items-start justify-between gap-3 mb-2">
-            <h3 className="font-bold text-slate-800 text-lg leading-snug line-clamp-2 tracking-tight group-hover:text-[#1abc9c] transition-colors">
+        <div className="mb-4">
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <h3 className="font-bold text-slate-800 text-[1.1rem] leading-snug line-clamp-2 tracking-tight group-hover:text-[#1abc9c] transition-colors pr-14">
               {task.name}
             </h3>
           </div>
           
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] font-medium text-slate-500">
-            <span className="flex items-center gap-1 uppercase tracking-wider tabular-nums">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-2 text-[11px] font-medium text-slate-500">
+            <span className="flex items-center gap-1 tracking-wider tabular-nums bg-slate-100/80 px-2 py-0.5 rounded-md border border-slate-200/50">
               {format(new Date(task.createdAt), 'MM/dd HH:mm')}
             </span>
             <StatusBadge status={task.status} />
             {task.tripInfo && (
-              <span className="flex items-center gap-1 text-[#1abc9c] bg-[#1abc9c]/5 px-2 py-0.5 rounded-full border border-[#1abc9c]/10">
+              <span className="flex items-center gap-1.5 text-[#1abc9c] bg-[#1abc9c]/10 px-2.5 py-0.5 rounded-md border border-[#1abc9c]/20 font-semibold shadow-sm">
                 {(task.tripInfo.transport === '飞机' || !task.tripInfo.transport) ? <Plane className="w-3 h-3" /> : 
                  task.tripInfo.transport === '高铁' ? <Train className="w-3 h-3" /> : <Car className="w-3 h-3" />}
                 {task.tripInfo.destination}
               </span>
             )}
             {task.meetingInfo && (
-              <span className="flex items-center gap-1 text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">
+              <span className="flex items-center gap-1.5 text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-md border border-indigo-100 font-semibold shadow-sm">
                 <Users className="w-3 h-3" />
                 {task.meetingInfo.person}
               </span>
@@ -929,58 +934,81 @@ function TaskCard({ task, onClick, isTrash, onRestore, onPermanentDelete, canEdi
         {/* Tags Section */}
         <div className="flex flex-wrap gap-1.5 mb-6 min-h-[1.75rem] items-center">
           {task.departments?.map(d => (
-            <span key={d} className={cn("text-[10px] px-2 py-0.5 rounded-md font-bold border shadow-sm", DEPARTMENTS[d].bg, DEPARTMENTS[d].color, DEPARTMENTS[d].border)}>
+            <span key={d} className={cn("text-[10px] px-2 py-0.5 rounded-md font-bold border shadow-sm tracking-wide", DEPARTMENTS[d].bg, DEPARTMENTS[d].color, DEPARTMENTS[d].border)}>
               {DEPARTMENTS[d].label}
             </span>
           ))}
           {task.liaisonDepartments && task.liaisonDepartments.length > 0 && (
-            <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+            <ChevronRight className="w-3 h-3 text-slate-300 ml-1 mr-0.5" />
           )}
           {task.liaisonDepartments?.slice(0, 2).map((ld: any, i: number) => {
             const name = typeof ld === 'string' ? ld : ld.name;
             const contact = typeof ld === 'string' ? '' : ld.contact;
             return (
-              <span key={name + i} className="text-[10px] px-2 py-0.5 rounded-md font-bold bg-violet-50 text-violet-700 border border-violet-100 shadow-sm leading-tight">
+              <span key={name + i} className="text-[10px] px-2 py-0.5 rounded-md font-bold bg-violet-50/80 text-violet-700 border border-violet-100 shadow-sm leading-tight tracking-wide">
                 {name}{contact ? `(${contact})` : ''}
               </span>
             );
           })}
           {(task.liaisonDepartments?.length || 0) > 2 && (
-            <span className="text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-slate-50 text-slate-500 border border-slate-100">
+            <span className="text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-slate-50 text-slate-500 border border-slate-200">
               +{task.liaisonDepartments.length - 2}
             </span>
           )}
         </div>
 
+        <div className="flex-1" />
+
         {/* Footer info */}
-        <div className="mt-auto pt-4 border-t border-slate-100/80 flex items-center justify-between">
-          <div className={cn("flex items-center w-full", task.projectLead ? "justify-between" : "justify-end")}>
-            {task.projectLead && (
-              <div className="flex items-center gap-2.5">
-                <div className="flex items-center -space-x-1.5">
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#1abc9c] to-[#16a085] flex items-center justify-center text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
+        <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col gap-3">
+          <div className={cn("flex flex-wrap items-center gap-3 w-full", task.projectLead ? "justify-between" : "justify-end")}>
+            <div className="flex items-center flex-wrap gap-3">
+              {task.projectLead && (
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-[10px] bg-gradient-to-br from-[#1abc9c] to-[#16a085] flex items-center justify-center text-xs font-black text-white shadow-md shadow-[#1abc9c]/20 ring-1 ring-white/50">
                     {leadName?.charAt(0) || ''}
                   </div>
+                  <div className="flex flex-col">
+                    <span className="text-[12px] font-bold text-slate-800 leading-none">{leadName}</span>
+                    <span className="text-[9px] text-[#1abc9c] font-black tracking-widest uppercase leading-tight mt-0.5">LEAD</span>
+                  </div>
                 </div>
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-[11px] font-bold text-slate-800 leading-none">{leadName}</span>
-                  <span className="text-[8px] text-slate-400 font-bold tracking-widest uppercase leading-none">Project Lead</span>
+              )}
+
+              {teamMemNames.length > 0 && (
+                <div className="flex items-center gap-2 pl-3 border-l border-slate-200 min-h-[32px]">
+                  <div className="flex flex-wrap gap-1 max-w-[130px]">
+                    {teamMemNames.slice(0, 2).map((name: string, i: number) => (
+                      <div key={i} className="px-1.5 py-0.5 bg-white border border-slate-200 shadow-sm rounded flex items-center justify-center text-[10px] font-bold text-slate-600 truncate max-w-[60px]" title={name}>
+                        {name}
+                      </div>
+                    ))}
+                    {teamMemNames.length > 2 && (
+                      <div className="px-1.5 py-0.5 bg-slate-50 border border-slate-100 shadow-sm rounded flex items-center justify-center text-[10px] font-bold text-slate-400">
+                        +{teamMemNames.length - 2}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-col shrink-0">
+                    <span className="text-[10px] font-bold text-slate-600 leading-none">团队成员</span>
+                    <span className="text-[9px] text-slate-400 font-bold tracking-wider leading-tight mt-0.5">TEAM</span>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
             
             {isTrash && canEdit && (
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 ml-auto">
                 <button 
                   onClick={(e) => { e.stopPropagation(); onRestore?.(); }}
-                  className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-100"
+                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-all border border-transparent hover:border-blue-100 shadow-sm bg-white"
                   title="恢复"
                 >
                   <RotateCcw className="w-4 h-4" />
                 </button>
                 <button 
                   onClick={(e) => { e.stopPropagation(); onPermanentDelete?.(); }}
-                  className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100"
+                  className="p-2 text-red-600 hover:bg-red-50 rounded-xl transition-all border border-transparent hover:border-red-100 shadow-sm bg-white"
                   title="永久删除"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -992,18 +1020,20 @@ function TaskCard({ task, onClick, isTrash, onRestore, onPermanentDelete, canEdi
 
         {/* Content Preview at the very bottom */}
         {!isTrash && (task.currentUpdate || task.meetingInfo?.agenda || task.description) && (
-          <div className="mt-3 p-3 bg-slate-50/50 rounded-xl border border-slate-100/50 relative">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-[9px] font-bold text-[#1abc9c]/70 uppercase tracking-tighter">
+          <div className="mt-4 p-3.5 bg-gradient-to-br from-slate-50/80 to-slate-100/50 rounded-2xl border border-slate-200/60 relative overflow-hidden group/preview">
+            <div className="absolute top-0 left-0 w-1 h-full bg-slate-200 group-hover/preview:bg-[#1abc9c]/40 transition-colors" />
+            <div className="flex items-center justify-between mb-1.5 pl-1.5">
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1">
+                <Sparkles className="w-3 h-3 text-amber-400" />
                 {task.currentUpdate ? '最新进展' : (task.meetingInfo?.agenda ? '事项概要' : '任务描述')}
               </span>
               {task.updatedAt && (
-                <span className="text-[9px] text-slate-400 tabular-nums">
-                  {format(new Date(task.updatedAt), 'MM/dd HH:mm')} 更新
+                <span className="text-[10px] text-slate-400 tabular-nums font-medium tracking-wide">
+                  {format(new Date(task.updatedAt), 'MM/dd HH:mm')}
                 </span>
               )}
             </div>
-            <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed">
+            <p className="text-[12px] text-slate-700 font-medium line-clamp-2 leading-relaxed pl-1.5">
               {task.currentUpdate || task.meetingInfo?.agenda || task.description}
             </p>
           </div>

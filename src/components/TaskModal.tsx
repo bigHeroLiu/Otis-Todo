@@ -291,6 +291,37 @@ export function TaskModal({ isOpen, onClose, task, onSave, members, liaisonDepts
                 </select>
               </div>
             </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2 ml-1">团队成员</label>
+              <div className="flex flex-wrap gap-2">
+                {members.map((m: any) => {
+                  const isSelected = formData.teamMembers.includes(m.id) || formData.teamMembers.includes(m.name);
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => {
+                        setFormData((prev: any) => {
+                          const newTeam = isSelected
+                            ? prev.teamMembers.filter((id: string) => id !== m.id && id !== m.name)
+                            : [...prev.teamMembers, m.id];
+                          return { ...prev, teamMembers: newTeam };
+                        });
+                      }}
+                      className={cn(
+                        "px-3 py-1.5 rounded-full text-xs font-bold border transition-all cursor-pointer",
+                        isSelected
+                          ? "bg-[#1abc9c] text-white border-[#1abc9c] shadow-sm shadow-[#1abc9c]/20"
+                          : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100/80"
+                      )}
+                    >
+                      {m.name}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
           </section>
 
           <section className="space-y-4">
