@@ -732,7 +732,7 @@ export default function App() {
                       isTrash={view === 'trash'}
                       onRestore={() => handleRestoreTask(task.id)}
                       onPermanentDelete={() => handlePermanentDelete(task.id)}
-                      canEdit={userRole === 'otis'}
+                      canEdit={userRole === 'otis' || (userRole === 'staff' && (task.projectLead === currentStaffId || task.projectLead === members.find(m => m.id === currentStaffId)?.name))}
                       onToggleChairman={(e) => {
                         e.stopPropagation();
                         handleUpdateTask(task.id, { visibleToChairman: !task.visibleToChairman });
@@ -773,7 +773,7 @@ export default function App() {
         onUpdate={handleUpdateTask}
         onDelete={(id: string) => { handleDeleteTask(id); setSelectedTask(null); }}
         onEdit={(task: Task) => { setSelectedTask(null); setEditingTask(task); setIsTaskModalOpen(true); }}
-        canEditDetails={userRole === 'otis'}
+        canEditDetails={userRole === 'otis' || (userRole === 'staff' && (selectedTask?.projectLead === currentStaffId || selectedTask?.projectLead === members.find(m => m.id === currentStaffId)?.name))}
         canUpdateStatus={userRole === 'otis' || userRole === 'staff'}
         members={members}
       />

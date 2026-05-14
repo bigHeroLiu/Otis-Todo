@@ -58,9 +58,9 @@ export function TaskDetailModal({ isOpen, onClose, task, onUpdate, onDelete, onE
         {/* Sticky Header */}
         <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-xl border-b border-slate-100 px-8 py-6 flex flex-col gap-4">
           <div className="flex items-start justify-between gap-6">
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-800 leading-tight">
+            <DialogTitle className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-800 leading-tight">
               {task.name}
-            </h2>
+            </DialogTitle>
             {canEditDetails && (
               <div className="flex items-center gap-2 shrink-0 bg-slate-100/50 p-1 rounded-xl">
                 <button onClick={() => onEdit(task)} className="p-2 text-slate-400 hover:text-[#1abc9c] hover:bg-white rounded-lg transition-all shadow-sm"><Edit2 className="w-5 h-5" /></button>

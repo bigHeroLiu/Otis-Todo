@@ -261,10 +261,22 @@ app.post('/api/members', (req, res) => {
   const { id = generateId(), name, department, profile, createdAt = new Date().toISOString() } = req.body;
   
   // if id already exists, update
-  const exists = db.prepare('SELECT id FROM members WHERE id = ?').get(id);
-  if (exists) {
+  const existingRecord = db.prepare('SELECT id, name, department, profile FROM members WHERE id = ?').get(id) as any;
+  if (existingRecord) {
+    let finalProfile = profile;
+    if (existingRecord.profile) {
+      try {
+        const parsedExisting = JSON.parse(existingRecord.profile);
+        finalProfile = { ...parsedExisting, ...(profile || {}) };
+      } catch (e) {
+        // ignore
+      }
+    }
+    const finalName = name !== undefined ? name : existingRecord.name;
+    const finalDept = department !== undefined ? department : existingRecord.department;
+    
     const stmt = db.prepare('UPDATE members SET name = ?, department = ?, profile = ? WHERE id = ?');
-    stmt.run(name, department, profile ? JSON.stringify(profile) : null, id);
+    stmt.run(finalName, finalDept, finalProfile ? JSON.stringify(finalProfile) : null, id);
     res.json({ id });
   } else {
     const stmt = db.prepare('INSERT INTO members (id, name, department, profile, createdAt) VALUES (?, ?, ?, ?, ?)');
@@ -319,60 +331,66 @@ app.post('/api/ai/extract-task', async (req, res) => {
     currentTasks: tasks
   });
 
-  const systemPrompt = `你是一个智能、高级的系统级 AI 侧边栏助理。你的任务是理解用户的自然语言输入，并根据意图自动采取行动（新增待办、更新待办、新增员工、更新员工等）。
+  const systemPrompt = `你是一个智能、高级的系统级 AI 侧边栏助理。你的任务是理解用户的自然语言输入，并根据意图自动采取行动（新增待办、更新待办、新增员工、更新员工等）。如果一条输入包含多个意图（例如同时添加部门和人员），请将它们一并执行。
   你可以查阅以下当前系统上下文，以便更准确地匹配人员或任务：
   ${contextData}
 
-  你需要返回一个带有执行意图的 JSON：
+  你需要返回一个包含执行动作列表的 JSON：
   {
-    "intent": "CREATE_TASK" | "UPDATE_TASK" | "CREATE_MEMBER" | "UPDATE_MEMBER" | "CREATE_DEPT" | "UNKNOWN",
-    "message": "给用户的回复信息（用第一人称，语气专业、礼貌。如果是新增或更新操作，可以概括一下你打算执行的内容，询问用户是否确认执行。提示词需足够友好智能。）",
-    
-    // 如果意图是 CREATE_TASK 或 UPDATE_TASK：
-    "taskData": {
-      "id": "如果是 UPDATE_TASK，这里填匹配到的任务id",
-      "name": "任务标题/事项简述",
-      "description": "详细说明",
-      "projectLead": "负责人的 id（优先使用上下文里的id，如果你能匹配到名字的话）或名字",
-      "departments": ["Legal", "Investment", "Audit", "Family_Office", "IR", "Personal", "Other"],
-      "status": "pending",
-      "tripInfo": {
-        "destination": "目的地",
-        "dates": "出差日期",
-        "transport": "飞机 / 高铁 / 公司司机 / 自驾 / 其他",
-        "needsDriver": true/false,
-        "driverName": "司机姓名",
-        "driverPickupLocation": "接车地点",
-        "driverPhone": "司机电话",
-        "flightNo": "航班号",
-        "flightTime": "航班时间"
+    "actions": [
+      {
+        "intent": "CREATE_TASK" | "UPDATE_TASK" | "CREATE_MEMBER" | "UPDATE_MEMBER" | "CREATE_DEPT",
+        // 以下各种数据根据 intent 选填：
+        "taskData": { ... },
+        "memberData": { ... },
+        "deptData": { ... }
       }
-    },
-    
-    // 如果意图是 CREATE_MEMBER 或 UPDATE_MEMBER：
-    "memberData": {
-      "id": "如果是 UPDATE_MEMBER，这里填匹配到的成员id",
-      "name": "员工姓名",
-      "department": "所属部门",
-      "profile": { // 这个字段是可选的
-        "position": "职位",
-        "phone": "电话",
-        "email": "邮箱"
-      }
-    },
+    ],
+    "message": "给用户的回复信息（如果是多重操作，请统一概括你打算执行的组合内容。如果没有识别出任何合法的行动，actions 可以为空数组，并返回友好的出错提示。）"
+  }
 
-    // 如果意图是 CREATE_DEPT：
-    "deptData": {
-      "name": "部门名称"
+  下面是每种 intent 对应的数据结构示例：
+  // 如果意图是 CREATE_TASK 或 UPDATE_TASK：
+  "taskData": {
+    "id": "如果是 UPDATE_TASK，这里填匹配到的任务id",
+    "name": "任务标题/事项简述",
+    "description": "详细说明",
+    "projectLead": "负责人的 id（优先使用上下文里的id，如果你能匹配到名字的话）或名字",
+    "departments": ["Legal", "Investment", "Audit", "Family_Office", "IR", "Personal", "Other"],
+    "status": "pending",
+    "tripInfo": {
+      "destination": "目的地",
+      "dates": "出差日期",
+      "transport": "飞机 / 高铁 / 公司司机 / 自驾 / 其他",
+      "needsDriver": true/false,
+      "driverName": "司机姓名"
     }
+  }
+  
+  // 如果意图是 CREATE_MEMBER 或 UPDATE_MEMBER：
+  "memberData": {
+    "id": "如果是 UPDATE_MEMBER，这里填匹配到的成员id",
+    "name": "员工姓名",
+    "department": "所属部门名字",
+    "profile": {
+      "position": "职位",
+      "phone": "电话",
+      "email": "邮箱",
+      "salary": "工资（数字或文本形式，如 50000）",
+      "birthday": "生日（请尽量使用 YYYY-MM-DD 格式）"
+    }
+  }
+
+  // 如果意图是 CREATE_DEPT：
+  "deptData": {
+    "name": "部门名称"
   }
 
   注意：
   1. 当前日期是：${new Date().toLocaleDateString()}
-  2. 请一定务必仔细理解用户的意图，如果用户说“张三换了手机号”，说明是 UPDATE_MEMBER。如果用户说“安排王五跟进报销流程”，可能是 CREATE_TASK 或者 UPDATE_TASK（如果已有报销任务）。
-  3. departments 的可选值尽量从系统预设的 keys (Legal 对应 法务部, Investment 对应 投资中心, Audit 对应 审计监察部, Family_Office 对应 家族办公室, IR 对应 投资者关系, Personal 对应 个人事务) 中猜一个。如果无法匹配，就填 "Other"。
-  4. 如果是更新任务，只填用户提到需要改的字段到 taskData 里即可。
-  5. 必须返回合法的 JSON，不要套 markdown。
+  2. 请一定务必仔细理解用户的意图。如果一条消息包含多个操作，比如"请添加一个部门叫做ai项目部，部门里面的人员是刘一夫"，请返回包含 CREATE_DEPT 和 CREATE_MEMBER 的 actions 数组。
+  3. departments 的可选值尽量从系统预设的 keys 中猜一个，如果不匹配则用 "Other"。但 department 填员工部门名称的时候，直接填真实部门名称。
+  4. 必须返回合法的 JSON，不要套 markdown。
   `;
 
   try {

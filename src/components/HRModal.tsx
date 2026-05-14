@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
-import { Plus, Trash2, Edit2, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Trash2, Edit2, X, ChevronDown, ChevronUp, Download, Upload } from 'lucide-react';
 import { format, differenceInYears, differenceInMonths, differenceInDays } from 'date-fns';
 import { Lunar } from 'lunar-javascript';
+import * as XLSX from 'xlsx';
 
 export function HRModal({ isOpen, onClose, members, onSaveMember, onDeleteMember, liaisonDepts, onSaveDept, onDeleteDept }: any) {
   const [activeTab, setActiveTab] = useState<'members' | 'depts'>('members');
@@ -32,6 +33,95 @@ export function HRModal({ isOpen, onClose, members, onSaveMember, onDeleteMember
     return colors[dept] || { border: 'border-slate-200', dot: 'bg-slate-400', title: 'text-slate-900', count: 'text-slate-400', avatarBg: 'bg-slate-50', avatarText: 'text-slate-600', headerBg: 'bg-slate-50/30', icon: 'text-slate-400' };
   };
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isImporting, setIsImporting] = useState(false);
+
+  const exportToExcel = () => {
+    const data = members.map((m: any) => ({
+      ID: m.id || '',
+      姓名: m.name || '',
+      部门: m.department || '',
+      岗位: m.profile?.position || '',
+      年龄: m.profile?.age || '',
+      学历: m.profile?.education || '',
+      学校: m.profile?.school || '',
+      专业: m.profile?.major || '',
+      入职日期: m.profile?.hireDate || '',
+      薪资: m.profile?.salary || '',
+      生日类型: m.profile?.birthdayType === 'lunar' ? '阴历' : '阳历',
+      生日: m.profile?.birthday || '',
+      上次调薪日期: m.profile?.lastSalaryAdjustment || '',
+      性格: m.profile?.personality || ''
+    }));
+    
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "员工花名册");
+    XLSX.writeFile(workbook, "员工花名册.xlsx");
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setIsImporting(true);
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const bstr = evt.target?.result;
+        const wb = XLSX.read(bstr, { type: 'binary' });
+        const wsname = wb.SheetNames[0];
+        const ws = wb.Sheets[wsname];
+        const data = XLSX.utils.sheet_to_json(ws);
+        
+        for (const row of data as any[]) {
+          const name = row['姓名'];
+          const department = row['部门'];
+          if (!name || !department) continue;
+          
+          let existingMember = members.find((m: any) => m.id === row['ID']);
+          if (!existingMember) {
+            existingMember = members.find((m: any) => m.name === name && m.department === department);
+          }
+          
+          const profile = existingMember?.profile || {};
+          
+          const memberData = {
+            id: existingMember?.id,
+            name: name,
+            department: department,
+            profile: {
+              ...profile,
+              position: row['岗位'] ?? profile.position ?? '',
+              age: row['年龄'] ?? profile.age ?? '',
+              education: row['学历'] ?? profile.education ?? '',
+              school: row['学校'] ?? profile.school ?? '',
+              major: row['专业'] ?? profile.major ?? '',
+              hireDate: row['入职日期'] ?? profile.hireDate ?? '',
+              salary: row['薪资'] ?? profile.salary ?? '',
+              birthdayType: row['生日类型'] === '阴历' ? 'lunar' : (row['生日类型'] === '阳历' ? 'solar' : profile.birthdayType ?? 'solar'),
+              birthday: row['生日'] ?? profile.birthday ?? '',
+              lastSalaryAdjustment: row['上次调薪日期'] ?? profile.lastSalaryAdjustment ?? '',
+              personality: row['性格'] ?? profile.personality ?? ''
+            }
+          };
+          
+          await onSaveMember(memberData);
+        }
+        alert("导入完成");
+      } catch (error) {
+        console.error("导入失败", error);
+        alert("导入失败，请检查文件格式。");
+      } finally {
+        setIsImporting(false);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      }
+    };
+    reader.readAsBinaryString(file);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[92dvh] overflow-y-auto">
@@ -39,19 +129,40 @@ export function HRModal({ isOpen, onClose, members, onSaveMember, onDeleteMember
           <DialogTitle>人力资源与部门管理</DialogTitle>
         </DialogHeader>
         
-        <div className="flex gap-4 border-b border-slate-200 mb-4">
-          <button 
-            className={`pb-2 px-1 text-sm font-medium ${activeTab === 'members' ? 'text-[#1abc9c] border-b-2 border-[#1abc9c]' : 'text-slate-500'}`}
-            onClick={() => setActiveTab('members')}
-          >
-            成员管理
-          </button>
-          <button 
-            className={`pb-2 px-1 text-sm font-medium ${activeTab === 'depts' ? 'text-[#1abc9c] border-b-2 border-[#1abc9c]' : 'text-slate-500'}`}
-            onClick={() => setActiveTab('depts')}
-          >
-            协助部门管理
-          </button>
+        <div className="flex items-center justify-between border-b border-slate-200 mb-4">
+          <div className="flex gap-4">
+            <button 
+              className={`pb-2 px-1 text-sm font-medium ${activeTab === 'members' ? 'text-[#1abc9c] border-b-2 border-[#1abc9c]' : 'text-slate-500'}`}
+              onClick={() => setActiveTab('members')}
+            >
+              成员管理
+            </button>
+            <button 
+              className={`pb-2 px-1 text-sm font-medium ${activeTab === 'depts' ? 'text-[#1abc9c] border-b-2 border-[#1abc9c]' : 'text-slate-500'}`}
+              onClick={() => setActiveTab('depts')}
+            >
+              协助部门管理
+            </button>
+          </div>
+
+          {activeTab === 'members' && (
+            <div className="flex gap-2 mb-2">
+              <input type="file" accept=".xlsx,.xls" className="hidden" ref={fileInputRef} onChange={handleImport} />
+              <button 
+                onClick={() => fileInputRef.current?.click()} 
+                disabled={isImporting} 
+                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors disabled:opacity-50"
+              >
+                <Upload className="w-3 h-3" /> 导入
+              </button>
+              <button 
+                onClick={exportToExcel} 
+                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+              >
+                <Download className="w-3 h-3" /> 导出
+              </button>
+            </div>
+          )}
         </div>
 
         {activeTab === 'members' && (

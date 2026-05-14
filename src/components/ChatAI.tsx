@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, Send, X, Bot, User, Loader2, Sparkles, Check } from 'lucide-react';
+import { MessageSquare, Send, X, Bot, User, Loader2, Sparkles, Check, Mic, MicOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 import { processNaturalLanguageTask, saveTask, updateTask, saveMember, saveDept } from '../services/api';
@@ -19,13 +19,71 @@ export function ChatAI({ onActionComplete }: { onActionComplete: () => Promise<v
     {
       id: '1',
       role: 'assistant',
-      content: '您好！我是您的系统 AI 助手。您可以告诉我想要新增待办、修改员工信息，或者添加新部门等，我会自动识别意图并帮您执行。'
+      content: '您好！我是您的系统 AI 助手。您可以告诉我想要新增待办、修改员工信息，或者添加新部门等，我会自动识别意图并帮您执行。可以打字也可以直接对我说哦！'
     }
   ]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  
   const scrollRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<any>(null);
+  
   const [activeTemplate, setActiveTemplate] = useState<'meeting' | 'trip' | 'hr' | null>(null);
   const [placeholder, setPlaceholder] = useState('如：帮我记一下，明天下午和法务开会，负责人张三。');
+
+  useEffect(() => {
+    // Initialize speech recognition
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        recognitionRef.current = new SpeechRecognition();
+        recognitionRef.current.continuous = true;
+        recognitionRef.current.interimResults = true;
+        recognitionRef.current.lang = 'zh-CN';
+
+        recognitionRef.current.onresult = (event: any) => {
+          let finalTranscript = '';
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+              finalTranscript += event.results[i][0].transcript;
+            }
+          }
+          if (finalTranscript) {
+            setInput(prev => {
+              const newVal = prev + finalTranscript;
+              return newVal;
+            });
+          }
+        };
+
+        recognitionRef.current.onerror = (event: any) => {
+          console.error('Speech recognition error', event.error);
+          if (event.error === 'not-allowed') {
+            alert('麦克风权限被拒绝，请在浏览器或应用设置中允许访问麦克风。');
+          }
+          setIsRecording(false);
+        };
+
+        recognitionRef.current.onend = () => {
+          setIsRecording(false);
+        };
+      }
+    }
+  }, []);
+
+  const toggleRecording = () => {
+    if (isRecording) {
+      recognitionRef.current?.stop();
+      setIsRecording(false);
+    } else {
+      if (recognitionRef.current) {
+        recognitionRef.current.start();
+        setIsRecording(true);
+      } else {
+        alert("您的浏览器不支持语音识别功能，请使用 Chrome 等现代浏览器。");
+      }
+    }
+  };
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -46,6 +104,11 @@ export function ChatAI({ onActionComplete }: { onActionComplete: () => Promise<v
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
+    
+    if (isRecording) {
+      recognitionRef.current?.stop();
+      setIsRecording(false);
+    }
 
     const userMsg: Message = {
       id: Date.now().toString(),
@@ -58,15 +121,23 @@ export function ChatAI({ onActionComplete }: { onActionComplete: () => Promise<v
     setIsLoading(true);
 
     try {
-      const responseData = await processNaturalLanguageTask(input, '');
+      const responseData = await processNaturalLanguageTask(userMsg.content, '');
       
-      if (responseData && responseData.intent && responseData.intent !== 'UNKNOWN') {
+      const hasActions = responseData && responseData.actions && responseData.actions.length > 0;
+      
+      // Fallback for previous single intent format, just in case
+      let actions = responseData.actions || [];
+      if (!hasActions && responseData && responseData.intent && responseData.intent !== 'UNKNOWN') {
+        actions = [responseData];
+      }
+
+      if (actions.length > 0) {
         const assistantMsg: Message = {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
           content: responseData.message || '识别到以下操作，是否为您执行？',
           isAction: true,
-          actionData: responseData
+          actionData: { actions }
         };
         setMessages(prev => [...prev, assistantMsg]);
       } else {
@@ -89,14 +160,18 @@ export function ChatAI({ onActionComplete }: { onActionComplete: () => Promise<v
 
   const confirmAction = async (msgId: string, actionData: any) => {
     try {
-      if (actionData.intent === 'CREATE_TASK') {
-        await saveTask(actionData.taskData);
-      } else if (actionData.intent === 'UPDATE_TASK') {
-        await updateTask(actionData.taskData.id, actionData.taskData);
-      } else if (actionData.intent === 'CREATE_MEMBER' || actionData.intent === 'UPDATE_MEMBER') {
-        await saveMember(actionData.memberData);
-      } else if (actionData.intent === 'CREATE_DEPT') {
-        await saveDept(actionData.deptData);
+      const actions = actionData.actions || [];
+      
+      for (const action of actions) {
+        if (action.intent === 'CREATE_TASK') {
+          await saveTask(action.taskData);
+        } else if (action.intent === 'UPDATE_TASK') {
+          await updateTask(action.taskData.id, action.taskData);
+        } else if (action.intent === 'CREATE_MEMBER' || action.intent === 'UPDATE_MEMBER') {
+          await saveMember(action.memberData);
+        } else if (action.intent === 'CREATE_DEPT') {
+          await saveDept(action.deptData);
+        }
       }
       
       // refresh UI data
@@ -169,38 +244,45 @@ export function ChatAI({ onActionComplete }: { onActionComplete: () => Promise<v
                         {msg.content}
                       </div>
 
-                      {msg.isAction && msg.actionData && (
-                        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
-                          <div className="text-xs text-[#1abc9c] bg-[#1abc9c]/10 px-2 py-1 rounded inline-flex font-bold tracking-wider">
-                            {msg.actionData.intent.replace('_', ' ')}
-                          </div>
-                          
-                          {/* Show extracted data based on intent */}
-                          {['CREATE_TASK', 'UPDATE_TASK'].includes(msg.actionData.intent) && msg.actionData.taskData && (
-                            <div>
-                              <div className="text-sm font-bold text-slate-800">{msg.actionData.taskData.name}</div>
-                              {msg.actionData.taskData.projectLead && <div className="text-xs text-slate-500 mt-1">负责人: {msg.actionData.taskData.projectLead}</div>}
-                            </div>
-                          )}
+                      {msg.isAction && msg.actionData && msg.actionData.actions && (
+                        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                          {msg.actionData.actions.map((action: any, index: number) => (
+                            <div key={index} className="space-y-2 pb-3 border-b border-slate-100 last:border-0 last:pb-0">
+                              <div className="text-xs text-[#1abc9c] bg-[#1abc9c]/10 px-2 py-1 rounded inline-flex font-bold tracking-wider">
+                                {action.intent.replace('_', ' ')}
+                              </div>
+                              
+                              {/* Show extracted data based on intent */}
+                              {['CREATE_TASK', 'UPDATE_TASK'].includes(action.intent) && action.taskData && (
+                                <div>
+                                  <div className="text-sm font-bold text-slate-800">{action.taskData.name}</div>
+                                  {action.taskData.projectLead && <div className="text-xs text-slate-500 mt-1">负责人: {action.taskData.projectLead}</div>}
+                                </div>
+                              )}
 
-                          {['CREATE_MEMBER', 'UPDATE_MEMBER'].includes(msg.actionData.intent) && msg.actionData.memberData && (
-                            <div>
-                              <div className="text-sm font-bold text-slate-800">{msg.actionData.memberData.name}</div>
-                              <div className="text-xs text-slate-500 mt-1">部门: {msg.actionData.memberData.department}</div>
+                              {['CREATE_MEMBER', 'UPDATE_MEMBER'].includes(action.intent) && action.memberData && (
+                                <div>
+                                  <div className="text-sm font-bold text-slate-800">{action.memberData.name}</div>
+                                  {action.memberData.department && <div className="text-xs text-slate-500 mt-1">部门: {action.memberData.department}</div>}
+                                  {action.memberData.profile?.position && <div className="text-xs text-slate-500 mt-1">职位: {action.memberData.profile.position}</div>}
+                                  {action.memberData.profile?.salary && <div className="text-xs text-slate-500 mt-1">薪资: {action.memberData.profile.salary}</div>}
+                                  {action.memberData.profile?.birthday && <div className="text-xs text-slate-500 mt-1">生日: {action.memberData.profile.birthday}</div>}
+                                </div>
+                              )}
+                              
+                              {action.intent === 'CREATE_DEPT' && action.deptData && (
+                                <div>
+                                  <div className="text-sm font-bold text-slate-800">{action.deptData.name}</div>
+                                </div>
+                              )}
                             </div>
-                          )}
-                          
-                          {msg.actionData.intent === 'CREATE_DEPT' && msg.actionData.deptData && (
-                            <div>
-                              <div className="text-sm font-bold text-slate-800">{msg.actionData.deptData.name}</div>
-                            </div>
-                          )}
+                          ))}
 
                           <button
                             onClick={() => confirmAction(msg.id, msg.actionData)}
                             className="w-full flex items-center justify-center gap-1 py-2 mt-2 bg-[#1abc9c] text-white rounded-lg text-xs font-bold hover:bg-[#16a085] transition-colors"
                           >
-                            <Check className="w-4 h-4" /> 确认执行
+                            <Check className="w-4 h-4" /> 确认全部执行
                           </button>
                         </div>
                       )}
@@ -271,16 +353,32 @@ export function ChatAI({ onActionComplete }: { onActionComplete: () => Promise<v
                         handleSend();
                       }
                     }}
-                    placeholder={placeholder}
-                    className="w-full border border-slate-200 rounded-xl px-4 py-3 pr-12 text-sm outline-none focus:ring-2 focus:ring-[#1abc9c]/50 resize-none"
+                    placeholder={isRecording ? '正在倾听...' : placeholder}
+                    className={cn(
+                      "w-full border border-slate-200 rounded-xl px-4 py-3 pr-24 text-sm outline-none resize-none transition-all",
+                      isRecording ? "ring-2 ring-red-400 border-red-400 bg-red-50/10 placeholder:text-red-500" : "focus:ring-2 focus:ring-[#1abc9c]/50"
+                    )}
                   />
-                  <button
-                    onClick={handleSend}
-                    disabled={!input.trim() || isLoading}
-                    className="absolute bottom-3 right-3 p-2 bg-[#1abc9c] text-white rounded-lg hover:bg-[#16a085] disabled:opacity-50 disabled:hover:bg-[#1abc9c] transition-colors"
-                  >
-                    <Send className="w-4 h-4" />
-                  </button>
+                  <div className="absolute bottom-3 right-3 flex items-center gap-2">
+                    <button
+                      onClick={toggleRecording}
+                      className={cn(
+                        "p-2 rounded-lg transition-colors flex items-center justify-center",
+                        isRecording 
+                          ? "bg-red-50 text-red-500 hover:bg-red-100 animate-pulse" 
+                          : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                      )}
+                    >
+                      {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                    </button>
+                    <button
+                      onClick={handleSend}
+                      disabled={!input.trim() || isLoading}
+                      className="p-2 bg-[#1abc9c] text-white rounded-lg hover:bg-[#16a085] disabled:opacity-50 disabled:hover:bg-[#1abc9c] transition-colors"
+                    >
+                      <Send className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
                 <p className="text-[10px] text-slate-400 mt-2 text-center">
                   按 Enter 发送，Shift + Enter 换行
